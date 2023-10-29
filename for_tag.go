@@ -9,7 +9,7 @@ import (
 
 var ErrForTagInvalidArgs = errors.New("invalid arguments in for tag")
 
-// forTag represents a #if tag within a Salix template
+// forTag represents a #for tag within a Salix template
 type forTag struct{}
 
 func (ft forTag) Run(tc *TagContext, block, args []ast.Node) error {

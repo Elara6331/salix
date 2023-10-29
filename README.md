@@ -30,16 +30,15 @@ Salix's syntax is similar to Leaf and (in my opinion at least), it's much more f
 ### API Usage
 
 ```go
-t, err := salix.New().
-    WithVarMap(vars).
-    WithFuncMap(funcs).
-    WithEscapeHTML(true).
-    ParseFile("example.salix.txt")
+t, err := salix.New().ParseFile("example.salix.txt")
 if err != nil {
   panic(err)
 }
 
-err = t.Execute(os.Stdout)
+err = t.WithVarMap(vars).
+    WithFuncMap(funcs).
+    WithEscapeHTML(true).
+    Execute(os.Stdout)
 if err != nil {
   panic(err)
 }

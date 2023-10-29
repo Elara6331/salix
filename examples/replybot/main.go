@@ -23,13 +23,12 @@ func main() {
 	}
 
 	t, err := salix.New().
-		WithVarMap(vars).
 		ParseString("replybot.salix.txt", tmpl)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = t.Execute(os.Stdout)
+	err = t.WithVarMap(vars).Execute(os.Stdout)
 	if err != nil {
 		log.Fatalln(err)
 	}

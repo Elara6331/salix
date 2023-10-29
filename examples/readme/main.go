@@ -56,15 +56,14 @@ func main() {
 		"page":  Page{Title: "Users"},
 	}
 
-	t, err := salix.New().
-		WithVarMap(vars).
-		WithEscapeHTML(true).
-		ParseString("readme.salix.html", tmpl)
+	t, err := salix.New().ParseString("readme.salix.html", tmpl)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = t.Execute(os.Stdout)
+	err = t.WithVarMap(vars).
+		WithEscapeHTML(true).
+		Execute(os.Stdout)
 	if err != nil {
 		log.Fatalln(err)
 	}

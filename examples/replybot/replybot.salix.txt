@@ -1,4 +1,5 @@
 #if(len(matches) > 1):Imgur links were#else:An Imgur link was#!if detected in your #(type). Here are links to the same #if(len(matches) > 1):locations#else:location#!if on alternative frontends that protect your privacy.
+
 #for(i, match in matches):
 #if(len(matches) > 1):Link #(i+1):#!if
 - [imgur.artemislena.eu](https://imgur.artemislena.eu/#(match[1]))
