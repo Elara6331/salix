@@ -1,0 +1,220 @@
+{
+package parser
+
+import (
+    "strconv"
+
+    "go.elara.ws/salix/internal/ast"
+)
+
+func toAnySlice(v any) []any {
+    if v == nil {
+        return nil
+    }
+    return v.([]any)
+}
+
+func toNodeSlice(v any) []ast.Node {
+    if v == nil {
+        return nil
+    }
+    return v.([]ast.Node)
+}
+
+func getPos(c *current) ast.Position {
+    return ast.Position{
+        Line: c.pos.line,
+        Col:  c.pos.col,
+    }
+}
+
+}
+
+Root = items:(Tag / ExprTag / EndTag / Text)* {
+    itemSlice := toAnySlice(items)
+    out := make([]ast.Node, len(itemSlice))
+    for i, item := range itemSlice{
+        out[i] = item.(ast.Node)
+    }
+    return out, nil
+}
+
+Tag = '#' name:Ident params:ParamList? body:':'? {
+    return ast.Tag{
+        Name:     name.(ast.Ident),
+        Params:   toNodeSlice(params),
+        HasBody:  body != nil,
+        Position: getPos(c),
+    }, nil
+}
+
+EndTag = "#!" name:Ident {
+    return ast.EndTag{
+        Name:     name.(ast.Ident),
+        Position: getPos(c),
+    }, nil
+}
+
+ExprTag = "#(" expr:Expr ')' {
+    return ast.ExprTag{
+        Value:    expr.(ast.Node),
+        Position: getPos(c),
+    }, nil
+}
+
+Expr = first:ExprSegment rest:(_ Logical _ ExprSegment)* {
+    restSlice := toAnySlice(rest)
+    if len(restSlice) == 0 {
+        return first, nil
+    }
+    
+    out := ast.Expr{Segment: first.(ast.Node), Position: getPos(c)}
+    for _, restValue := range restSlice {
+        valueSlice := toAnySlice(restValue)
+        out.Rest = append(out.Rest, ast.Expr{
+            Logical:  valueSlice[1].(ast.Logical),
+            Segment:  valueSlice[3].(ast.Node),
+            Position: valueSlice[3].(ast.Node).Pos(),
+        })
+    }
+    
+    return out, nil
+}
+
+ExprSegment = first:Value rest:(_ Operator _ Value)* {
+    restSlice := toAnySlice(rest)
+    if len(restSlice) == 0 {
+        return first, nil
+    }
+    
+    out := ast.ExprSegment{Value: first.(ast.Node), Position: getPos(c)}
+    for _, restValue := range restSlice {
+        valueSlice := toAnySlice(restValue)
+        out.Rest = append(out.Rest, ast.ExprSegment{
+            Operator: valueSlice[1].(ast.Operator),
+            Value:    valueSlice[3].(ast.Node),
+            Position: valueSlice[3].(ast.Node).Pos(),
+        })
+    }
+    
+    return out, nil
+}
+
+ParamList = '(' params:(Expr ( ',' _ Expr )* )? ')' {
+    paramSlice := toAnySlice(params)
+    if len(paramSlice) == 0 {
+        return []ast.Node{}, nil
+    }
+    out := []ast.Node{paramSlice[0].(ast.Node)}
+    restSlice := toAnySlice(paramSlice[1])
+    for _, value := range restSlice {
+        valueSlice := toAnySlice(value)
+        out = append(out, valueSlice[2].(ast.Node))
+    }
+    return out, nil
+}
+
+Value = not:"!"? node:(MethodCall / FieldAccess / Index / String / RawString / Float / Integer / Bool / FuncCall / Ident) {
+    return ast.Value{
+        Node: node.(ast.Node),
+        Not:  not != nil,
+    }, nil
+}
+
+MethodCall = value:Value '.' name:Ident params:ParamList {
+    return ast.MethodCall{
+        Value:    value.(ast.Node),
+        Name:     name.(ast.Ident),
+        Params:   toNodeSlice(params),
+        Position: getPos(c),
+    }, nil
+}
+
+Index = value:Value '[' index:Value ']' {
+    return ast.Index{
+        Value:    value.(ast.Node),
+        Index:    index.(ast.Node),
+        Position: getPos(c),
+    }, nil
+}
+
+FieldAccess = value:Value '.' name:Ident {
+    return ast.FieldAccess{
+        Value:    value.(ast.Node),
+        Name:     name.(ast.Ident),
+        Position: getPos(c),
+    }, nil
+}
+
+Ident = [a-z]i [a-z0-9_]i* { 
+    return ast.Ident{
+        Value:    string(c.text),
+        Position: getPos(c),
+    }, nil
+}
+
+FuncCall = name:Ident params:ParamList {
+    return ast.FuncCall{
+        Name:     name.(ast.Ident),
+        Params:   toNodeSlice(params),
+        Position: getPos(c),
+    }, nil
+}
+
+Integer = ("0x" [0-9a-f]i+ / "0o" [0-7]+ / "0b" [01]+ / [0-9]+) {
+    i, err := strconv.ParseInt(string(c.text), 0, 64)
+    return ast.Integer{
+        Value:    i,
+        Position: getPos(c),
+    }, err
+}
+
+Float = value:([0-9]+ '.' [0-9]+) {
+    f, err := strconv.ParseFloat(string(c.text), 64)
+    return ast.Float{
+        Value:    f,
+        Position: getPos(c),
+    }, err
+}
+
+String = '"' value:[^"]* '"' {
+    s, err := strconv.Unquote(string(c.text))
+    return ast.String{
+        Value:    s,
+        Position: getPos(c),
+    }, err
+}
+
+RawString = '`' value:[^`]* '`' {
+    s, err := strconv.Unquote(string(c.text))
+    return ast.String{
+        Value:    s,
+        Position: getPos(c),
+    }, err
+}
+
+Bool = ("true"i / "false"i) {
+    b, err := strconv.ParseBool(string(c.text))
+    return ast.Bool{
+        Value:    b,
+        Position: getPos(c),
+    }, err
+}
+
+Operator = ("==" / "<=" / ">=" / "in"i / '<' / '>' / '+' / '-' / '/' / '*') {
+    return ast.Operator{
+        Value:    string(c.text),
+        Position: getPos(c),
+    }, nil
+}
+
+Logical = ("&&" / "||") {
+    return ast.Logical{
+        Value:    string(c.text),
+        Position: getPos(c),
+    }, nil
+}
+
+Text = . [^#]* { return ast.Text{Data: c.text, Position: getPos(c)}, nil }
+
+_ "whitespace" ← [ \t\r\n]*
