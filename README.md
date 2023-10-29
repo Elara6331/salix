@@ -36,7 +36,7 @@ if err != nil {
 }
 
 err = t.WithVarMap(vars).
-    WithFuncMap(funcs).
+    WithTagMap(tags).
     WithEscapeHTML(true).
     Execute(os.Stdout)
 if err != nil {
