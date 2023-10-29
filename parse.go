@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -57,6 +58,24 @@ func (t *Namespace) ParseFile(path string) (*Template, error) {
 	return t.Parse(fl)
 }
 
+// ParseGlob parses all the files that were matched by the given glob
+// nd adds them to the namespace.
+func (t *Namespace) ParseGlob(glob string) error {
+	matches, err := filepath.Glob(glob)
+	if err != nil {
+		return err
+	}
+
+	for _, match := range matches {
+		_, err := t.ParseFile(match)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // ParseFile parses a file at the given path in a filesystem. It uses the path as the name.
 func (t *Namespace) ParseFS(fsys fs.FS, path string) (*Template, error) {
 	fl, err := fsys.Open(path)
@@ -65,6 +84,24 @@ func (t *Namespace) ParseFS(fsys fs.FS, path string) (*Template, error) {
 	}
 	defer fl.Close()
 	return t.ParseWithName(path, fl)
+}
+
+// ParseGlob parses all the files in the filesystem that were matched by the given glob
+// and adds them to the namespace.
+func (t *Namespace) ParseFSGlob(fsys fs.FS, glob string) error {
+	matches, err := fs.Glob(fsys, glob)
+	if err != nil {
+		return err
+	}
+
+	for _, match := range matches {
+		_, err := t.ParseFS(fsys, match)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // ParseString parses a string using the given filename.
