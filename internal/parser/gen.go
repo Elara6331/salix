@@ -1,3 +1,3 @@
 package parser
 
-//go:generate pigeon --support-left-recursion -o parser.go salix.peg
+//go:generate pigeon --support-left-recursion --optimize-grammar -o parser.go salix.peg
