@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"maps"
 	"reflect"
 
 	"go.elara.ws/salix/internal/ast"
@@ -53,6 +54,20 @@ func New() *Template {
 		tags:  map[string]Tag{},
 	}
 	return t.WithTagMap(defaultTags).WithFuncMap(defaultFuncs)
+}
+
+// Clone returns a shallow clone of a template.
+func (t *Template) Clone() *Template {
+	return &Template{
+		file: t.file,
+		ast:  t.ast,
+
+		escapeHTML: t.escapeHTML,
+
+		tags:  maps.Clone(t.tags),
+		funcs: maps.Clone(t.funcs),
+		vars:  maps.Clone(t.vars),
+	}
 }
 
 // WithFuncMap adds all the functions in m to the template's
