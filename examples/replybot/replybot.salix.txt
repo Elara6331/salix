@@ -1,4 +1,4 @@
-#if(len(matches) > 1):Imgur links were#else:An Imgur link was#!if detected in your #(type). Here are links to the same #if(len(matches) > 1):locations#else:location#!if on alternative frontends that protect your privacy.
+#(len(matches) > 1 ? "Imgur links were" : "An Imgur link was") detected in your #(type). Here are links to the same #(len(matches) > 1 ? "locations" : "location") on alternative frontends that protect your privacy.
 
 #for(i, match in matches):
 #if(len(matches) > 1):Link #(i+1):#!if
