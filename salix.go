@@ -218,6 +218,8 @@ func (t *Template) getValue(node ast.Node, local map[string]any) (any, error) {
 		return t.execMethodCall(node, local)
 	case ast.Ternary:
 		return t.evalTernary(node, local)
+	case ast.VariableOr:
+		return t.evalVariableOr(node, local)
 	default:
 		return nil, nil
 	}
@@ -446,6 +448,14 @@ func (t *Template) evalTernary(tr ast.Ternary, local map[string]any) (any, error
 	} else {
 		return t.getValue(tr.Else, local)
 	}
+}
+
+func (t *Template) evalVariableOr(vo ast.VariableOr, local map[string]any) (any, error) {
+	val, err := t.getVar(vo.Variable, local)
+	if err != nil {
+		return t.getValue(vo.Or, local)
+	}
+	return val.Interface(), nil
 }
 
 func (t *Template) posError(n ast.Node, format string, v ...any) error {

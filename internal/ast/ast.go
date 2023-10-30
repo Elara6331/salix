@@ -210,3 +210,13 @@ type Ternary struct {
 func (t Ternary) Pos() Position {
 	return t.Position
 }
+
+type VariableOr struct {
+	Variable Ident
+	Or       Node
+	Position Position
+}
+
+func (vo VariableOr) Pos() Position {
+	return vo.Position
+}

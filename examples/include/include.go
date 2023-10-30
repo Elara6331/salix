@@ -34,15 +34,13 @@ func main() {
 		}
 
 		name := r.URL.Query().Get("name")
-		if name == "" {
-			name = "World"
+		vars := map[string]any{"title": "Home"}
+		if name != "" {
+			vars["name"] = name
 		}
 
 		err = tmpl.
-			WithVarMap(map[string]any{
-				"title": "Home",
-				"name":  name,
-			}).
+			WithVarMap(vars).
 			Execute(w)
 		if err != nil {
 			log.Println(err)

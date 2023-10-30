@@ -116,10 +116,17 @@ ParamList = '(' params:(Item ( ',' _ Item )* )? ')' {
     return out, nil
 }
 
-Value = not:"!"? node:(MethodCall / FieldAccess / Index / String / RawString / Float / Integer / Bool / FuncCall / Ident) {
+Value = not:"!"? node:(MethodCall / FieldAccess / Index / String / RawString / Float / Integer / Bool / FuncCall / VariableOr / Ident) {
     return ast.Value{
         Node: node.(ast.Node),
         Not:  not != nil,
+    }, nil
+}
+
+VariableOr = variable:Ident _ '|' _ or:Expr {
+    return ast.VariableOr{
+        Variable: variable.(ast.Ident),
+        Or:       or.(ast.Node),
     }, nil
 }
 
