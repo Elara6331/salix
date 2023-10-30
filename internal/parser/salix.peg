@@ -55,12 +55,14 @@ EndTag = "#!" name:Ident {
     }, nil
 }
 
-ExprTag = "#(" expr:Expr ')' {
+ExprTag = "#(" item:Item ')' {
     return ast.ExprTag{
-        Value:    expr.(ast.Node),
+        Value:    item.(ast.Node),
         Position: getPos(c),
     }, nil
 }
+
+Item = Ternary / Expr
 
 Expr = first:ExprSegment rest:(_ Logical _ ExprSegment)* {
     restSlice := toAnySlice(rest)
@@ -100,7 +102,7 @@ ExprSegment = first:Value rest:(_ Operator _ Value)* {
     return out, nil
 }
 
-ParamList = '(' params:(Expr ( ',' _ Expr )* )? ')' {
+ParamList = '(' params:(Item ( ',' _ Item )* )? ')' {
     paramSlice := toAnySlice(params)
     if len(paramSlice) == 0 {
         return []ast.Node{}, nil
@@ -118,6 +120,14 @@ Value = not:"!"? node:(MethodCall / FieldAccess / Index / String / RawString / F
     return ast.Value{
         Node: node.(ast.Node),
         Not:  not != nil,
+    }, nil
+}
+
+Ternary = cond:Expr _ '?' _ ifTrue:Value _ ':' _ elseVal:Value {
+    return ast.Ternary{
+        Condition: cond.(ast.Node),
+        IfTrue:    ifTrue.(ast.Node),
+        Else:      elseVal.(ast.Node),
     }, nil
 }
 

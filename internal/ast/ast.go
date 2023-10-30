@@ -199,3 +199,14 @@ func (l Logical) Pos() Position {
 func (l Logical) Op() string {
 	return l.Value
 }
+
+type Ternary struct {
+	Condition Node
+	IfTrue    Node
+	Else      Node
+	Position  Position
+}
+
+func (t Ternary) Pos() Position {
+	return t.Position
+}

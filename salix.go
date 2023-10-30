@@ -27,6 +27,7 @@ var (
 	ErrFuncTooManyReturns   = errors.New("template functions can only have two return values")
 	ErrFuncNoReturns        = errors.New("template functions must return at least one value")
 	ErrFuncSecondReturnType = errors.New("the second return value of a template function must be an error")
+	ErrTernaryCondBool      = errors.New("ternary condition must be a boolean")
 )
 
 // HTML represents unescaped HTML strings
@@ -215,6 +216,8 @@ func (t *Template) getValue(node ast.Node, local map[string]any) (any, error) {
 		return t.getField(node, local)
 	case ast.MethodCall:
 		return t.execMethodCall(node, local)
+	case ast.Ternary:
+		return t.evalTernary(node, local)
 	default:
 		return nil, nil
 	}
@@ -424,6 +427,24 @@ func (t *Template) execFunc(fn reflect.Value, node ast.Node, args []ast.Node, lo
 		return ret[0].Interface(), nil
 	} else {
 		return ret[0].Interface(), ret[1].Interface().(error)
+	}
+}
+
+func (t *Template) evalTernary(tr ast.Ternary, local map[string]any) (any, error) {
+	condVal, err := t.getValue(tr.Condition, local)
+	if err != nil {
+		return nil, t.posError(tr.Condition, "%w", ErrTernaryCondBool)
+	}
+
+	cond, ok := condVal.(bool)
+	if !ok {
+		return nil, errors.New("ternary condition must be a boolean")
+	}
+
+	if cond {
+		return t.getValue(tr.IfTrue, local)
+	} else {
+		return t.getValue(tr.Else, local)
 	}
 }
 

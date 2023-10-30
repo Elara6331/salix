@@ -10,10 +10,10 @@
     </div>  
     <div class="navbar-menu" id="navbarMenu">
         <div class="navbar-end">
-            <a class='navbar-item #if(title == "Home"):is-active#!if' href="/">
+            <a class='navbar-item #(title == "Home" ? "is-active" : "")' href="/">
                 Home
             </a>
-            <a class='navbar-item #if(title == "About"):is-active#!if' href="/about">
+            <a class='navbar-item #(title == "About" ? "is-active" : "")' href="/about">
                 About
             </a>
         </div>
