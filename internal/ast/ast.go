@@ -63,25 +63,14 @@ type Value struct {
 }
 
 type Expr struct {
-	Segment  Node
-	Logical  Logical
+	First    Node
+	Operator Operator
 	Rest     []Expr
 	Position Position
 }
 
 func (e Expr) Pos() Position {
 	return e.Position
-}
-
-type ExprSegment struct {
-	Value    Node
-	Operator Operator
-	Rest     []ExprSegment
-	Position Position
-}
-
-func (es ExprSegment) Pos() Position {
-	return es.Position
 }
 
 type FuncCall struct {

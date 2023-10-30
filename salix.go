@@ -206,8 +206,6 @@ func (t *Template) getValue(node ast.Node, local map[string]any) (any, error) {
 		return node.Value, nil
 	case ast.Expr:
 		return t.evalExpr(node, local)
-	case ast.ExprSegment:
-		return t.evalExprSegment(node, local)
 	case ast.FuncCall:
 		return t.execFuncCall(node, local)
 	case ast.Index:

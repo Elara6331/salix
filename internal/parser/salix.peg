@@ -28,6 +28,25 @@ func getPos(c *current) ast.Position {
     }
 }
 
+func toExpr(c *current, first, rest any) ast.Node {
+    restSlice := toAnySlice(rest)
+    if len(restSlice) == 0 {
+        return first.(ast.Node)
+    }
+    
+    out := ast.Expr{First: first.(ast.Node), Position: getPos(c)}
+    for _, restValue := range restSlice {
+        valueSlice := toAnySlice(restValue)
+        out.Rest = append(out.Rest, ast.Expr{
+            Operator: valueSlice[1].(ast.Operator),
+            First:  valueSlice[3].(ast.Node),
+            Position: valueSlice[3].(ast.Node).Pos(),
+        })
+    }
+    
+    return out
+}
+
 }
 
 Root = items:(Tag / ExprTag / EndTag / Text)* {
@@ -55,54 +74,32 @@ EndTag = "#!" name:Ident {
     }, nil
 }
 
-ExprTag = "#(" item:Item ')' {
+ExprTag = "#(" item:Expr ')' {
     return ast.ExprTag{
         Value:    item.(ast.Node),
         Position: getPos(c),
     }, nil
 }
 
-Item = Ternary / Expr
+Expr = Ternary / LogicalExpr
 
-Expr = first:ExprSegment rest:(_ Logical _ ExprSegment)* {
-    restSlice := toAnySlice(rest)
-    if len(restSlice) == 0 {
-        return first, nil
-    }
-    
-    out := ast.Expr{Segment: first.(ast.Node), Position: getPos(c)}
-    for _, restValue := range restSlice {
-        valueSlice := toAnySlice(restValue)
-        out.Rest = append(out.Rest, ast.Expr{
-            Logical:  valueSlice[1].(ast.Logical),
-            Segment:  valueSlice[3].(ast.Node),
-            Position: valueSlice[3].(ast.Node).Pos(),
-        })
-    }
-    
-    return out, nil
+LogicalExpr = _ first:ComparisonExpr rest:(_ LogicalOp _ ComparisonExpr)* _ {
+    return toExpr(c, first, rest), nil
 }
 
-ExprSegment = first:Value rest:(_ Operator _ Value)* {
-    restSlice := toAnySlice(rest)
-    if len(restSlice) == 0 {
-        return first, nil
-    }
-    
-    out := ast.ExprSegment{Value: first.(ast.Node), Position: getPos(c)}
-    for _, restValue := range restSlice {
-        valueSlice := toAnySlice(restValue)
-        out.Rest = append(out.Rest, ast.ExprSegment{
-            Operator: valueSlice[1].(ast.Operator),
-            Value:    valueSlice[3].(ast.Node),
-            Position: valueSlice[3].(ast.Node).Pos(),
-        })
-    }
-    
-    return out, nil
+ComparisonExpr = _ first:ArithmeticExpr rest:(_ ComparisonOp _ ArithmeticExpr)* _ {
+    return toExpr(c, first, rest), nil
 }
 
-ParamList = '(' params:(Item ( ',' _ Item )* )? ')' {
+ArithmeticExpr = _ first:Value rest:(_ ArithmeticOp _ Value)* _ {
+    return toExpr(c, first, rest), nil
+}
+
+ParenExpr = '(' expr:Expr ')' {
+    return expr, nil
+}
+
+ParamList = '(' params:(Expr ( ',' _ Expr )* )? ')' {
     paramSlice := toAnySlice(params)
     if len(paramSlice) == 0 {
         return []ast.Node{}, nil
@@ -116,7 +113,7 @@ ParamList = '(' params:(Item ( ',' _ Item )* )? ')' {
     return out, nil
 }
 
-Value = not:"!"? node:(MethodCall / FieldAccess / Index / String / RawString / Float / Integer / Bool / FuncCall / VariableOr / Ident) {
+Value = not:"!"? node:(MethodCall / FieldAccess / Index / String / RawString / Float / Integer / Bool / FuncCall / VariableOr / Ident / ParenExpr) {
     return ast.Value{
         Node: node.(ast.Node),
         Not:  not != nil,
@@ -218,15 +215,22 @@ Bool = ("true"i / "false"i) {
     }, err
 }
 
-Operator = ("==" / "<=" / ">=" / "in"i / '<' / '>' / '+' / '-' / '/' / '*') {
+LogicalOp = ("||" / "&&") {
     return ast.Operator{
         Value:    string(c.text),
         Position: getPos(c),
     }, nil
 }
 
-Logical = ("&&" / "||") {
-    return ast.Logical{
+ComparisonOp = ("==" / "<=" / ">=" / '<' / '>' / "in"i) {
+    return ast.Operator{
+        Value:    string(c.text),
+        Position: getPos(c),
+    }, nil
+}
+
+ArithmeticOp = ('+' / '-' / '/' / '*' / '%') {
+    return ast.Operator{
         Value:    string(c.text),
         Position: getPos(c),
     }, nil

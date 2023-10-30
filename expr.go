@@ -8,33 +8,14 @@ import (
 )
 
 func (t *Template) evalExpr(expr ast.Expr, local map[string]any) (any, error) {
-	val, err := t.getValue(expr.Segment, local)
+	val, err := t.getValue(expr.First, local)
 	if err != nil {
 		return nil, err
 	}
 	a := reflect.ValueOf(val)
 
 	for _, exprB := range expr.Rest {
-		val, err := t.getValue(exprB.Segment, local)
-		if err != nil {
-			return nil, err
-		}
-		b := reflect.ValueOf(val)
-		a = reflect.ValueOf(t.performOp(a, b, exprB.Logical))
-	}
-
-	return a.Interface(), nil
-}
-
-func (t *Template) evalExprSegment(expr ast.ExprSegment, local map[string]any) (any, error) {
-	val, err := t.getValue(expr.Value, local)
-	if err != nil {
-		return nil, err
-	}
-	a := reflect.ValueOf(val)
-
-	for _, exprB := range expr.Rest {
-		val, err := t.getValue(exprB.Value, local)
+		val, err := t.getValue(exprB.First, local)
 		if err != nil {
 			return nil, err
 		}

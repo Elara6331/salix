@@ -17,15 +17,15 @@ func (ft forTag) Run(tc *TagContext, block, args []ast.Node) error {
 		return ErrForTagInvalidArgs
 	}
 
-	var expr ast.ExprSegment
+	var expr ast.Expr
 	if len(args) == 1 {
-		expr2, ok := args[0].(ast.ExprSegment)
+		expr2, ok := args[0].(ast.Expr)
 		if !ok {
 			return ErrForTagInvalidArgs
 		}
 		expr = expr2
 	} else if len(args) == 2 {
-		expr2, ok := args[1].(ast.ExprSegment)
+		expr2, ok := args[1].(ast.Expr)
 		if !ok {
 			return ErrForTagInvalidArgs
 		}
@@ -44,7 +44,7 @@ func (ft forTag) Run(tc *TagContext, block, args []ast.Node) error {
 
 	}
 
-	varName, ok := unwrap(expr.Value).(ast.Ident)
+	varName, ok := unwrap(expr.First).(ast.Ident)
 	if !ok {
 		return ErrForTagInvalidArgs
 	}
