@@ -11,7 +11,7 @@ var (
 	ErrNoSuchTemplate     = errors.New("no such template")
 )
 
-// forTag represents an #include tag within a Salix template
+// includeTag represents an #include tag within a Salix template
 type includeTag struct{}
 
 func (it includeTag) Run(tc *TagContext, block, args []ast.Node) error {

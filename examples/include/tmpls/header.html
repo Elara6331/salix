@@ -1,0 +1,36 @@
+<nav class="navbar is-dark">
+    <div class="navbar-brand">
+        <a class="navbar-item" href="/">Salix</a>
+        
+        <a class="navbar-burger" id="navbarMenuIcon" onclick="toggleNavMenu()">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>  
+    <div class="navbar-menu" id="navbarMenu">
+        <div class="navbar-end">
+            <a class='navbar-item #if(title == "Home"):is-active#!if' href="/">
+                Home
+            </a>
+            <a class='navbar-item #if(title == "About"):is-active#!if' href="/about">
+                About
+            </a>
+        </div>
+    </div>  
+</nav>
+
+<script>
+    function toggleNavMenu() {
+        let navbarMenuIcon = document.getElementById("navbarMenuIcon");
+        let navbarMenu = document.getElementById("navbarMenu");
+        
+        if (navbarMenu.classList.contains('is-active')) {
+            navbarMenuIcon.classList.remove('is-active')
+            navbarMenu.classList.remove('is-active')
+        } else {
+            navbarMenuIcon.classList.add('is-active')
+            navbarMenu.classList.add('is-active')
+        }
+    }
+</script>
