@@ -2,6 +2,7 @@ package salix
 
 import (
 	"errors"
+
 	"go.elara.ws/salix/internal/ast"
 )
 
