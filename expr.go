@@ -131,6 +131,14 @@ func (t *Template) performOp(a, b reflect.Value, op ast.Op) any {
 		case reflect.Float64, reflect.Float32:
 			return a.Float() / b.Float()
 		}
+	case "%":
+		switch a.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return a.Int() % b.Int()
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			return a.Uint() % b.Uint()
+		case reflect.Float64, reflect.Float32:
+			return a.Float() % b.Float()
 	case "in":
 		if a.Kind() == reflect.String && b.Kind() == reflect.String {
 			return strings.Contains(b.String(), a.String())
