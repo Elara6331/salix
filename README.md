@@ -1,5 +1,8 @@
 # Salix
 
+[![Go Reference](https://pkg.go.dev/badge/go.elara.ws/salix.svg)](https://pkg.go.dev/go.elara.ws/salix)
+[![Go Report Card](https://goreportcard.com/badge/go.elara.ws/salix)](https://goreportcard.com/report/go.elara.ws/salix)
+
 Salix (pronounced *say-lix*) is a Go templating engine inspired by [Leaf](https://github.com/vapor/leaf).
 
 Salix's syntax is similar to Leaf and (in my opinion at least), it's much more fun to write than the Go template syntax. If you like this project, please star the repo. I hope you enjoy! :)
