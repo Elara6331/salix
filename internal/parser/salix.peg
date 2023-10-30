@@ -175,7 +175,7 @@ FuncCall = name:Ident params:ParamList {
     }, nil
 }
 
-Integer = ("0x" [0-9a-f]i+ / "0o" [0-7]+ / "0b" [01]+ / [0-9]+) {
+Integer = '-'? ("0x" [0-9a-f]i+ / "0o" [0-7]+ / "0b" [01]+ / [0-9]+) {
     i, err := strconv.ParseInt(string(c.text), 0, 64)
     return ast.Integer{
         Value:    i,
@@ -183,7 +183,7 @@ Integer = ("0x" [0-9a-f]i+ / "0o" [0-7]+ / "0b" [01]+ / [0-9]+) {
     }, err
 }
 
-Float = value:([0-9]+ '.' [0-9]+) {
+Float = '-'? value:([0-9]+ '.' [0-9]+) {
     f, err := strconv.ParseFloat(string(c.text), 64)
     return ast.Float{
         Value:    f,
