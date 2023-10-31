@@ -137,6 +137,8 @@ func (t *Template) performOp(a, b reflect.Value, op ast.Operator) (any, error) {
 			return a.Uint() + b.Uint(), nil
 		case reflect.Float64, reflect.Float32:
 			return a.Float() + b.Float(), nil
+		case reflect.String:
+			return a.String() + b.String(), nil
 		}
 	case "-":
 		switch a.Kind() {
