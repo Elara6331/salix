@@ -24,6 +24,7 @@ import (
 	"html"
 	"io"
 	"reflect"
+	"sync"
 
 	"go.elara.ws/salix/ast"
 )
@@ -61,6 +62,9 @@ type Template struct {
 
 	tags map[string]Tag
 	vars map[string]reflect.Value
+
+	macroMtx sync.Mutex
+	macros   map[string][]ast.Node
 }
 
 // WithVarMap returns a copy of the template with its variable map set to m.
@@ -124,7 +128,21 @@ func (t *Template) WithEscapeHTML(b bool) *Template {
 // Execute executes a parsed template and writes
 // the result to w.
 func (t *Template) Execute(w io.Writer) error {
-	return t.execute(w, t.ast, nil)
+	// Create a new template to give each execution
+	// its own macros
+	tmpl := &Template{
+		ns:   t.ns,
+		name: t.name,
+		ast:  t.ast,
+
+		escapeHTML: t.escapeHTML,
+
+		tags:   t.tags,
+		vars:   t.vars,
+		macros: map[string][]ast.Node{},
+	}
+
+	return tmpl.execute(w, t.ast, nil)
 }
 
 func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) error {

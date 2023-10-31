@@ -21,26 +21,22 @@ package salix
 import (
 	"reflect"
 	"sync"
-
-	"go.elara.ws/salix/ast"
 )
 
 // Namespace represents a collection of templates that can include each other
 type Namespace struct {
-	mu     sync.Mutex
-	tmpls  map[string]*Template
-	vars   map[string]reflect.Value
-	tags   map[string]Tag
-	macros map[string][]ast.Node
+	mu    sync.Mutex
+	tmpls map[string]*Template
+	vars  map[string]reflect.Value
+	tags  map[string]Tag
 }
 
 // New returns a new template namespace
 func New() *Namespace {
 	return &Namespace{
-		tmpls:  map[string]*Template{},
-		vars:   map[string]reflect.Value{},
-		tags:   map[string]Tag{},
-		macros: map[string][]ast.Node{},
+		tmpls: map[string]*Template{},
+		vars:  map[string]reflect.Value{},
+		tags:  map[string]Tag{},
 	}
 }
 
