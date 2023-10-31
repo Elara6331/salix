@@ -3,7 +3,7 @@ package salix
 import (
 	"io"
 
-	"go.elara.ws/salix/internal/ast"
+	"go.elara.ws/salix/ast"
 )
 
 // Tag represents a tag in a Salix template

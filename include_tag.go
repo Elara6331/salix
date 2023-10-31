@@ -3,7 +3,7 @@ package salix
 import (
 	"errors"
 
-	"go.elara.ws/salix/internal/ast"
+	"go.elara.ws/salix/ast"
 )
 
 var (

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"reflect"
 
-	"go.elara.ws/salix/internal/ast"
+	"go.elara.ws/salix/ast"
 )
 
 var ErrForTagInvalidArgs = errors.New("invalid arguments in for tag")

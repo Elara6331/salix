@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"strings"
 
-	"go.elara.ws/salix/internal/ast"
-	"go.elara.ws/salix/internal/parser"
+	"go.elara.ws/salix/ast"
+	"go.elara.ws/salix/parser"
 )
 
 // NamedReader is a reader with a name
