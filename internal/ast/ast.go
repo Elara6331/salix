@@ -159,10 +159,6 @@ func (b Bool) Pos() Position {
 	return b.Position
 }
 
-type Op interface {
-	Op() string
-}
-
 type Operator struct {
 	Value    string
 	Position Position
@@ -170,23 +166,6 @@ type Operator struct {
 
 func (op Operator) Pos() Position {
 	return op.Position
-}
-
-func (op Operator) Op() string {
-	return op.Value
-}
-
-type Logical struct {
-	Value    string
-	Position Position
-}
-
-func (l Logical) Pos() Position {
-	return l.Position
-}
-
-func (l Logical) Op() string {
-	return l.Value
 }
 
 type Ternary struct {
