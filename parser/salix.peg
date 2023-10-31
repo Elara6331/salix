@@ -99,7 +99,8 @@ ExprTag = "#(" item:Expr ')' {
     }, nil
 }
 
-Expr = Ternary / LogicalExpr
+Expr = Ternary / Assignment / LogicalExpr
+Assignable = Ternary / LogicalExpr
 
 LogicalExpr = _ first:ComparisonExpr rest:(_ LogicalOp _ ComparisonExpr)* _ {
     return toExpr(c, first, rest), nil
@@ -138,14 +139,22 @@ Value = not:"!"? node:(MethodCall / FieldAccess / Index / String / RawString / F
     }, nil
 }
 
-VariableOr = variable:Ident _ '|' _ or:Expr {
+VariableOr = variable:Ident _ '|' _ or:Assignable {
     return ast.VariableOr{
         Variable: variable.(ast.Ident),
         Or:       or.(ast.Node),
     }, nil
 }
 
-Ternary = cond:Expr _ '?' _ ifTrue:Value _ ':' _ elseVal:Value {
+Assignment = name:Ident _ '=' _ value:Assignable {
+    return ast.Assignment{
+        Name:     name.(ast.Ident),
+        Value:    value.(ast.Node),
+        Position: getPos(c),
+    }, nil
+}
+
+Ternary = cond:Assignable _ '?' _ ifTrue:Value _ ':' _ elseVal:Value {
     return ast.Ternary{
         Condition: cond.(ast.Node),
         IfTrue:    ifTrue.(ast.Node),

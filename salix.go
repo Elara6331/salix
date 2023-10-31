@@ -24,7 +24,6 @@ import (
 	"html"
 	"io"
 	"reflect"
-	"sync"
 
 	"go.elara.ws/salix/ast"
 )
@@ -126,6 +125,9 @@ func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) 
 			if err != nil {
 				return err
 			}
+			if _, ok := v.(ast.Assignment); ok {
+				continue
+			}
 			_, err = io.WriteString(w, t.toString(v))
 			if err != nil {
 				return err
@@ -210,6 +212,8 @@ func (t *Template) getValue(node ast.Node, local map[string]any) (any, error) {
 		return t.evalTernary(node, local)
 	case ast.VariableOr:
 		return t.evalVariableOr(node, local)
+	case ast.Assignment:
+		return node, t.handleAssignment(node, local)
 	default:
 		return nil, nil
 	}
@@ -398,6 +402,9 @@ func (t *Template) execFunc(fn reflect.Value, node ast.Node, args []ast.Node, lo
 
 	params := make([]reflect.Value, fnType.NumIn())
 	for i, arg := range args {
+		if _, ok := arg.(ast.Assignment); ok {
+			return nil, t.posError(arg, "assignment cannot be used as a function argument")
+		}
 		paramVal, err := t.getValue(arg, local)
 		if err != nil {
 			return nil, err
@@ -446,6 +453,15 @@ func (t *Template) evalVariableOr(vo ast.VariableOr, local map[string]any) (any,
 		return t.getValue(vo.Or, local)
 	}
 	return val.Interface(), nil
+}
+
+func (t *Template) handleAssignment(a ast.Assignment, local map[string]any) error {
+	val, err := t.getValue(a.Value, local)
+	if err != nil {
+		return err
+	}
+	local[a.Name.Value] = val
+	return nil
 }
 
 func (t *Template) posError(n ast.Node, format string, v ...any) error {

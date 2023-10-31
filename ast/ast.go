@@ -90,6 +90,16 @@ func (e Expr) Pos() Position {
 	return e.Position
 }
 
+type Assignment struct {
+	Name     Ident
+	Value    Node
+	Position Position
+}
+
+func (a Assignment) Pos() Position {
+	return a.Position
+}
+
 type FuncCall struct {
 	Name     Ident
 	Params   []Node

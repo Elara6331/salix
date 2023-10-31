@@ -33,7 +33,7 @@ var (
 type includeTag struct{}
 
 func (it includeTag) Run(tc *TagContext, block, args []ast.Node) error {
-	if len(args) != 1 {
+	if len(args) < 1 {
 		return ErrIncludeInvalidArgs
 	}
 
@@ -52,5 +52,22 @@ func (it includeTag) Run(tc *TagContext, block, args []ast.Node) error {
 		return ErrNoSuchTemplate
 	}
 
-	return tc.Execute(tmpl.ast, nil)
+	local := map[string]any{}
+
+	// Use the variable assignments after the first argument
+	// to set the local variables of the execution
+	for _, arg := range args[1:] {
+		if a, ok := arg.(ast.Assignment); ok {
+			val, err := tc.GetValue(a.Value, local)
+			if err != nil {
+				return err
+			}
+			local[a.Name.Value] = val
+		} else {
+			// If the argument isn't an assigment, return invalid args
+			return ErrIncludeInvalidArgs
+		}
+	}
+
+	return tc.Execute(tmpl.ast, local)
 }
