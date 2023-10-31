@@ -63,86 +63,44 @@ type Template struct {
 	tags map[string]Tag
 	vars map[string]reflect.Value
 
-	macroMtx sync.Mutex
+	macroMtx *sync.Mutex
 	macros   map[string][]ast.Node
 }
 
 // WithVarMap returns a copy of the template with its variable map set to m.
-func (t *Template) WithVarMap(m map[string]any) *Template {
-	newTmpl := &Template{
-		ns:   t.ns,
-		name: t.name,
-		ast:  t.ast,
-
-		escapeHTML: t.escapeHTML,
-
-		tags: t.tags,
-		vars: map[string]reflect.Value{},
-	}
-
+func (t Template) WithVarMap(m map[string]any) Template {
+	t.vars = map[string]reflect.Value{}
 	if m != nil {
 		for k, v := range m {
-			newTmpl.vars[k] = reflect.ValueOf(v)
+			t.vars[k] = reflect.ValueOf(v)
 		}
 	}
-
-	return newTmpl
+	return t
 }
 
 // WithTagMap returns a copy of the template with its tag map set to m.
-func (t *Template) WithTagMap(m map[string]Tag) *Template {
+func (t Template) WithTagMap(m map[string]Tag) Template {
 	// Make sure the tag map is never nil to avoid panics
 	if m == nil {
 		m = map[string]Tag{}
 	}
-
-	return &Template{
-		ns:   t.ns,
-		name: t.name,
-		ast:  t.ast,
-
-		escapeHTML: t.escapeHTML,
-
-		tags: m,
-		vars: t.vars,
-	}
+	t.tags = m
+	return t
 }
 
 // WithEscapeHTML returns a copy of the template with HTML escaping enabled or disabled.
 // The HTML escaping functionality is NOT context-aware.
 // Using the HTML type allows you to get around the escaping if needed.
-func (t *Template) WithEscapeHTML(b bool) *Template {
+func (t Template) WithEscapeHTML(b bool) Template {
 	t.escapeHTML = true
-	return &Template{
-		ns:   t.ns,
-		name: t.name,
-		ast:  t.ast,
-
-		escapeHTML: b,
-
-		tags: t.tags,
-		vars: t.vars,
-	}
+	return t
 }
 
 // Execute executes a parsed template and writes
 // the result to w.
-func (t *Template) Execute(w io.Writer) error {
-	// Create a new template to give each execution
-	// its own macros
-	tmpl := &Template{
-		ns:   t.ns,
-		name: t.name,
-		ast:  t.ast,
-
-		escapeHTML: t.escapeHTML,
-
-		tags:   t.tags,
-		vars:   t.vars,
-		macros: map[string][]ast.Node{},
-	}
-
-	return tmpl.execute(w, t.ast, nil)
+func (t Template) Execute(w io.Writer) error {
+	t.macros = map[string][]ast.Node{}
+	return t.execute(w, t.ast, nil)
 }
 
 func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) error {

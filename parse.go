@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 
 	"go.elara.ws/salix/ast"
 	"go.elara.ws/salix/parser"
@@ -39,23 +40,24 @@ type NamedReader interface {
 
 // Parse parses a salix template from a NamedReader, which is an io.Reader
 // with a Name method that returns a string. os.File implements NamedReader.
-func (n *Namespace) Parse(r NamedReader) (*Template, error) {
+func (n *Namespace) Parse(r NamedReader) (Template, error) {
 	return n.ParseWithName(r.Name(), r)
 }
 
 // ParseWithFilename parses a salix template from r, using the given name.
-func (n *Namespace) ParseWithName(name string, r io.Reader) (*Template, error) {
+func (n *Namespace) ParseWithName(name string, r io.Reader) (Template, error) {
 	astVal, err := parser.ParseReader(name, r)
 	if err != nil {
-		return nil, err
+		return Template{}, err
 	}
 
-	t := &Template{
-		ns:   n,
-		name: name,
-		ast:  astVal.([]ast.Node),
-		tags: map[string]Tag{},
-		vars: map[string]reflect.Value{},
+	t := Template{
+		ns:       n,
+		name:     name,
+		ast:      astVal.([]ast.Node),
+		tags:     map[string]Tag{},
+		vars:     map[string]reflect.Value{},
+		macroMtx: &sync.Mutex{},
 	}
 
 	performWhitespaceMutations(t.ast)
@@ -67,10 +69,10 @@ func (n *Namespace) ParseWithName(name string, r io.Reader) (*Template, error) {
 }
 
 // ParseFile parses the file at path as a salix template. It uses the path as the name.
-func (t *Namespace) ParseFile(path string) (*Template, error) {
+func (t *Namespace) ParseFile(path string) (Template, error) {
 	fl, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return Template{}, err
 	}
 	defer fl.Close()
 	return t.Parse(fl)
@@ -95,10 +97,10 @@ func (t *Namespace) ParseGlob(glob string) error {
 }
 
 // ParseFile parses a file at the given path in a filesystem. It uses the path as the name.
-func (t *Namespace) ParseFS(fsys fs.FS, path string) (*Template, error) {
+func (t *Namespace) ParseFS(fsys fs.FS, path string) (Template, error) {
 	fl, err := fsys.Open(path)
 	if err != nil {
-		return nil, err
+		return Template{}, err
 	}
 	defer fl.Close()
 	return t.ParseWithName(path, fl)
@@ -123,12 +125,12 @@ func (t *Namespace) ParseFSGlob(fsys fs.FS, glob string) error {
 }
 
 // ParseString parses a string using the given filename.
-func (t *Namespace) ParseString(filename, tmpl string) (*Template, error) {
+func (t *Namespace) ParseString(filename, tmpl string) (Template, error) {
 	return t.ParseWithName(filename, strings.NewReader(tmpl))
 }
 
 // ParseString parses bytes using the given filename.
-func (t *Namespace) ParseBytes(filename string, tmpl []byte) (*Template, error) {
+func (t *Namespace) ParseBytes(filename string, tmpl []byte) (Template, error) {
 	return t.ParseWithName(filename, bytes.NewReader(tmpl))
 }
 

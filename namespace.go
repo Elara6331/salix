@@ -26,7 +26,7 @@ import (
 // Namespace represents a collection of templates that can include each other
 type Namespace struct {
 	mu    sync.Mutex
-	tmpls map[string]*Template
+	tmpls map[string]Template
 	vars  map[string]reflect.Value
 	tags  map[string]Tag
 }
@@ -34,7 +34,7 @@ type Namespace struct {
 // New returns a new template namespace
 func New() *Namespace {
 	return &Namespace{
-		tmpls: map[string]*Template{},
+		tmpls: map[string]Template{},
 		vars:  map[string]reflect.Value{},
 		tags:  map[string]Tag{},
 	}
@@ -72,7 +72,7 @@ func (n *Namespace) WithTagMap(m map[string]Tag) *Namespace {
 // GetTemplate tries to get a template from the namespace's template map.
 // If it finds the template, it returns the template and true. If it
 // doesn't find it, it returns nil and false.
-func (n *Namespace) GetTemplate(name string) (*Template, bool) {
+func (n *Namespace) GetTemplate(name string) (Template, bool) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	t, ok := n.tmpls[name]
