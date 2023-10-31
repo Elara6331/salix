@@ -26,7 +26,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
-	"sync"
 
 	"go.elara.ws/salix/ast"
 	"go.elara.ws/salix/parser"
@@ -52,12 +51,11 @@ func (n *Namespace) ParseWithName(name string, r io.Reader) (Template, error) {
 	}
 
 	t := Template{
-		ns:       n,
-		name:     name,
-		ast:      astVal.([]ast.Node),
-		tags:     map[string]Tag{},
-		vars:     map[string]reflect.Value{},
-		macroMtx: &sync.Mutex{},
+		ns:   n,
+		name: name,
+		ast:  astVal.([]ast.Node),
+		tags: map[string]Tag{},
+		vars: map[string]reflect.Value{},
 	}
 
 	performWhitespaceMutations(t.ast)

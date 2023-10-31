@@ -60,11 +60,9 @@ type Template struct {
 
 	escapeHTML bool
 
-	tags map[string]Tag
-	vars map[string]reflect.Value
-
-	macroMtx *sync.Mutex
-	macros   map[string][]ast.Node
+	tags   map[string]Tag
+	vars   map[string]reflect.Value
+	macros map[string][]ast.Node
 }
 
 // WithVarMap returns a copy of the template with its variable map set to m.

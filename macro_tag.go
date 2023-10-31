@@ -30,17 +30,13 @@ func (mt macroTag) Run(tc *TagContext, block, args []ast.Node) error {
 	}
 
 	if len(block) == 0 {
-		tc.t.macroMtx.Lock()
 		macro, ok := tc.t.macros[name]
 		if !ok {
 			return ErrNoSuchMacro
 		}
-		tc.t.macroMtx.Unlock()
 		return tc.Execute(macro, nil)
 	} else {
-		tc.t.macroMtx.Lock()
 		tc.t.macros[name] = block
-		tc.t.macroMtx.Unlock()
 	}
 
 	return nil
