@@ -1,0 +1,13 @@
+#macro("content"):
+    <section class="hero is-fullheight-with-navbar">
+        <div class="hero-body">
+            <div class="container">
+                <p class="title">Hello, #(name | "World")!</p>
+                <p class="subtitle">This is a demo of the Salix template engine.</p>
+                <a class="button is-link is-rounded" href="/about">About &rarr;</a>
+            </div>
+        </div>
+    </section>
+#!macro
+
+#include("base.html")

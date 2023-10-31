@@ -33,6 +33,7 @@ var globalTags = map[string]Tag{
 	"if":      ifTag{},
 	"for":     forTag{},
 	"include": includeTag{},
+	"macro":   macroTag{},
 }
 
 // TagContext is passed to Tag implementations to allow them to control the interpreter

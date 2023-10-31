@@ -1,0 +1,55 @@
+<html>
+    <head>
+        <title>#(title)</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    </head>
+    <body>
+            <nav class="navbar is-dark">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="/">Salix</a>
+                
+                <a class="navbar-burger" id="navbarMenuIcon" onclick="toggleNavMenu()">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
+            </div>  
+            <div class="navbar-menu" id="navbarMenu">
+                <div class="navbar-end">
+                    <a class='navbar-item #(title == "Home" ? "is-active" : "")' href="/">
+                        Home
+                    </a>
+                    <a class='navbar-item #(title == "About" ? "is-active" : "")' href="/about">
+                        About
+                    </a>
+                </div>
+            </div>  
+        </nav>
+        
+        #macro("content")
+        
+        <section class="hero is-small is-dark">
+            <div class="hero-body">
+                <div class="container">
+                    <p class="has-text-centered">Copyright &copy; #(now().Year()) Salix Contributors. Licensed under the GPLv3.</p>
+                </div>
+            </div>
+        </section>
+        
+        <script>
+            function toggleNavMenu() {
+                let navbarMenuIcon = document.getElementById("navbarMenuIcon");
+                let navbarMenu = document.getElementById("navbarMenu");
+                
+                if (navbarMenu.classList.contains('is-active')) {
+                    navbarMenuIcon.classList.remove('is-active')
+                    navbarMenu.classList.remove('is-active')
+                } else {
+                    navbarMenuIcon.classList.add('is-active')
+                    navbarMenu.classList.add('is-active')
+                }
+            }
+        </script>
+    </body>
+</html>
+
