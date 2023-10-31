@@ -368,6 +368,9 @@ func (t *Template) getField(fa ast.FieldAccess, local map[string]any) (any, erro
 		return nil, err
 	}
 	rval := reflect.ValueOf(val)
+	for rval.Kind() == reflect.Pointer {
+		rval = rval.Elem()
+	}
 	field := rval.FieldByName(fa.Name.Value)
 	if !field.IsValid() {
 		return nil, t.posError(fa, "%w: %s", ErrNoSuchField, fa.Name.Value)
@@ -382,6 +385,9 @@ func (t *Template) execMethodCall(mc ast.MethodCall, local map[string]any) (any,
 		return nil, err
 	}
 	rval := reflect.ValueOf(val)
+	for rval.Kind() == reflect.Pointer {
+		rval = rval.Elem()
+	}
 	mtd := rval.MethodByName(mc.Name.Value)
 	if !mtd.IsValid() {
 		return nil, t.posError(mc, "%w: %s", ErrNoSuchMethod, mc.Name.Value)

@@ -1,0 +1,6 @@
+<div class="post" data-id="#(post.ID)">
+    <p>Message=#(post.Message)</p>
+    #for(child in post.Children):
+        #include("post.html", post = child)
+    #!for
+</div>
