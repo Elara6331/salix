@@ -25,6 +25,7 @@ Salix's syntax is similar to Leaf and (in my opinion at least), it's much more f
   - [Ternary Expressions](#ternary-expressions)
   - [Coalescing operator](#coalescing-operator)
   - [The `in` operator](#the-in-operator)
+- [Markdown](#markdown)
 - [Acknowledgements](#acknowledgements)
 
 ## Examples
@@ -215,7 +216,7 @@ Salix's `in` operator allows you to check if a slice or array contains a specifi
 
 ## Markdown
 
-Salix doesn't include a markdown rendering tag because I didn't want any non-stdlib dependencies. Instead, there's an implementation of a markdown salix tag using [goldmark](https://github.com/yuin/goldmark) at https://pkg.go.dev/go.elara.ws/salixmd.
+Salix doesn't include a markdown rendering tag because I didn't want any non-stdlib dependencies. Instead, there's an implementation of a markdown salix tag using [goldmark](https://github.com/yuin/goldmark) at [go.elara.ws/salixmd](https://pkg.go.dev/go.elara.ws/salixmd).
 
 ## Acknowledgements
 
