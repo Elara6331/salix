@@ -29,6 +29,8 @@ type Namespace struct {
 	tmpls map[string]Template
 	vars  map[string]reflect.Value
 	tags  map[string]Tag
+
+	escapeHTML *bool
 }
 
 // New returns a new template namespace
@@ -69,6 +71,14 @@ func (n *Namespace) WithTagMap(m map[string]Tag) *Namespace {
 	return n
 }
 
+// WithVarMap turns HTML escaping on or off for the namespace
+func (n *Namespace) WithEscapeHTML(b bool) *Namespace {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+	n.escapeHTML = &b
+	return n
+}
+
 // GetTemplate tries to get a template from the namespace's template map.
 // If it finds the template, it returns the template and true. If it
 // doesn't find it, it returns nil and false.
@@ -93,4 +103,11 @@ func (n *Namespace) getTag(name string) (Tag, bool) {
 	defer n.mu.Unlock()
 	t, ok := n.tags[name]
 	return t, ok
+}
+
+// getEscapeHTML returns the namespace's escapeHTML value
+func (n *Namespace) getEscapeHTML() *bool {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+	return n.escapeHTML
 }

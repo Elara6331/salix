@@ -58,7 +58,7 @@ type Template struct {
 	name string
 	ast  []ast.Node
 
-	escapeHTML bool
+	escapeHTML *bool
 
 	tags   map[string]Tag
 	vars   map[string]reflect.Value
@@ -90,7 +90,7 @@ func (t Template) WithTagMap(m map[string]Tag) Template {
 // The HTML escaping functionality is NOT context-aware.
 // Using the HTML type allows you to get around the escaping if needed.
 func (t Template) WithEscapeHTML(b bool) Template {
-	t.escapeHTML = true
+	t.escapeHTML = &b
 	return t
 }
 
@@ -140,10 +140,20 @@ func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) 
 	return nil
 }
 
+func (t *Template) getEscapeHTML() bool {
+	if t.escapeHTML != nil {
+		return *t.escapeHTML
+	} else if t.ns.escapeHTML != nil {
+		return *t.ns.getEscapeHTML()
+	} else {
+		return false
+	}
+}
+
 func (t *Template) toString(v any) string {
 	if h, ok := v.(HTML); ok {
 		return string(h)
-	} else if t.escapeHTML {
+	} else if t.getEscapeHTML() {
 		return html.EscapeString(fmt.Sprint(v))
 	}
 	return fmt.Sprint(v)
