@@ -19,6 +19,7 @@
 package salix
 
 import (
+	"bytes"
 	"io"
 
 	"go.elara.ws/salix/ast"
@@ -48,9 +49,26 @@ func (tc *TagContext) Execute(nodes []ast.Node, local map[string]any) error {
 	return tc.t.execute(tc.w, nodes, mergeMap(tc.local, local))
 }
 
+// ExecuteToMemory runs the interpreter on the given AST nodes, with the given local variables, and
+// returns the resulting bytes rather than writing them out.
+func (tc *TagContext) ExecuteToMemory(nodes []ast.Node, local map[string]any) ([]byte, error) {
+	buf := &bytes.Buffer{}
+	err := tc.t.execute(buf, nodes, mergeMap(tc.local, local))
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
 // GetValue evaluates the given AST node using the given local variables.
 func (tc *TagContext) GetValue(node ast.Node, local map[string]any) (any, error) {
 	return tc.t.getValue(node, mergeMap(tc.local, local))
+}
+
+// Write writes b to the underlying writer. It implements
+// the io.Writer interface.
+func (tc *TagContext) Write(b []byte) (int, error) {
+	return tc.w.Write(b)
 }
 
 func mergeMap(a, b map[string]any) map[string]any {
