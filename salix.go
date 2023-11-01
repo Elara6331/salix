@@ -61,18 +61,13 @@ type Template struct {
 	escapeHTML *bool
 
 	tags   map[string]Tag
-	vars   map[string]reflect.Value
+	vars   map[string]any
 	macros map[string][]ast.Node
 }
 
 // WithVarMap returns a copy of the template with its variable map set to m.
 func (t Template) WithVarMap(m map[string]any) Template {
-	t.vars = map[string]reflect.Value{}
-	if m != nil {
-		for k, v := range m {
-			t.vars[k] = reflect.ValueOf(v)
-		}
-	}
+	t.vars = m
 	return t
 }
 
@@ -202,7 +197,7 @@ func (t *Template) getValue(node ast.Node, local map[string]any) (any, error) {
 		if err != nil {
 			return nil, err
 		}
-		return val.Interface(), nil
+		return val, nil
 	case ast.String:
 		return node.Value, nil
 	case ast.Float:
@@ -253,11 +248,11 @@ func (t *Template) unwrapASTValue(node ast.Value, local map[string]any) (any, er
 // getVar tries to get a variable from the local map. If it's not found,
 // it'll try the global variable map. If it doesn't exist in either map,
 // it will return an error.
-func (t *Template) getVar(id ast.Ident, local map[string]any) (reflect.Value, error) {
+func (t *Template) getVar(id ast.Ident, local map[string]any) (any, error) {
 	if local != nil {
 		v, ok := local[id.Value]
 		if ok {
-			return reflect.ValueOf(v), nil
+			return v, nil
 		}
 	}
 
@@ -327,7 +322,7 @@ func (t *Template) execFuncCall(fc ast.FuncCall, local map[string]any) (any, err
 	if err != nil {
 		return nil, t.posError(fc, "%w: %s", ErrNoSuchFunc, fc.Name.Value)
 	}
-	return t.execFunc(fn, fc, fc.Params, local)
+	return t.execFunc(reflect.ValueOf(fn), fc, fc.Params, local)
 }
 
 // getIndex tries to evaluate an ast.Index node by indexing the underlying value.
@@ -471,7 +466,7 @@ func (t *Template) evalVariableOr(vo ast.VariableOr, local map[string]any) (any,
 	if err != nil {
 		return t.getValue(vo.Or, local)
 	}
-	return val.Interface(), nil
+	return val, nil
 }
 
 func (t *Template) handleAssignment(a ast.Assignment, local map[string]any) error {

@@ -18,16 +18,13 @@
 
 package salix
 
-import (
-	"reflect"
-	"sync"
-)
+import "sync"
 
 // Namespace represents a collection of templates that can include each other
 type Namespace struct {
 	mu    sync.Mutex
 	tmpls map[string]Template
-	vars  map[string]reflect.Value
+	vars  map[string]any
 	tags  map[string]Tag
 
 	escapeHTML *bool
@@ -37,7 +34,7 @@ type Namespace struct {
 func New() *Namespace {
 	return &Namespace{
 		tmpls: map[string]Template{},
-		vars:  map[string]reflect.Value{},
+		vars:  map[string]any{},
 		tags:  map[string]Tag{},
 	}
 }
@@ -46,14 +43,7 @@ func New() *Namespace {
 func (n *Namespace) WithVarMap(m map[string]any) *Namespace {
 	n.mu.Lock()
 	defer n.mu.Unlock()
-
-	n.vars = map[string]reflect.Value{}
-	if m != nil {
-		for k, v := range m {
-			n.vars[k] = reflect.ValueOf(v)
-		}
-	}
-
+	n.vars = m
 	return n
 }
 
@@ -90,7 +80,7 @@ func (n *Namespace) GetTemplate(name string) (Template, bool) {
 }
 
 // getVar tries to get a variable from the namespace's variable map
-func (n *Namespace) getVar(name string) (reflect.Value, bool) {
+func (n *Namespace) getVar(name string) (any, bool) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	v, ok := n.vars[name]

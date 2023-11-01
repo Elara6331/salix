@@ -23,19 +23,19 @@ import (
 	"strings"
 )
 
-var globalVars = map[string]reflect.Value{
-	"len":        reflect.ValueOf(tmplLen),
-	"toUpper":    reflect.ValueOf(strings.ToUpper),
-	"toLower":    reflect.ValueOf(strings.ToLower),
-	"hasPrefix":  reflect.ValueOf(strings.HasPrefix),
-	"trimPrefix": reflect.ValueOf(strings.TrimPrefix),
-	"hasSuffix":  reflect.ValueOf(strings.HasSuffix),
-	"trimSuffix": reflect.ValueOf(strings.TrimSuffix),
-	"trimSpace":  reflect.ValueOf(strings.TrimSpace),
-	"equalFold":  reflect.ValueOf(strings.EqualFold),
-	"count":      reflect.ValueOf(strings.Count),
-	"split":      reflect.ValueOf(strings.Split),
-	"join":       reflect.ValueOf(strings.Join),
+var globalVars = map[string]any{
+	"len":        tmplLen,
+	"toUpper":    strings.ToUpper,
+	"toLower":    strings.ToLower,
+	"hasPrefix":  strings.HasPrefix,
+	"trimPrefix": strings.TrimPrefix,
+	"hasSuffix":  strings.HasSuffix,
+	"trimSuffix": strings.TrimSuffix,
+	"trimSpace":  strings.TrimSpace,
+	"equalFold":  strings.EqualFold,
+	"count":      strings.Count,
+	"split":      strings.Split,
+	"join":       strings.Join,
 }
 
 func tmplLen(v any) int {

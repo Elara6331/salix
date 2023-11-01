@@ -24,7 +24,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 
 	"go.elara.ws/salix/ast"
@@ -55,7 +54,7 @@ func (n *Namespace) ParseWithName(name string, r io.Reader) (Template, error) {
 		name: name,
 		ast:  astVal.([]ast.Node),
 		tags: map[string]Tag{},
-		vars: map[string]reflect.Value{},
+		vars: map[string]any{},
 	}
 
 	performWhitespaceMutations(t.ast)
