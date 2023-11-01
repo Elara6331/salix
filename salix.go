@@ -67,17 +67,21 @@ type Template struct {
 
 // WithVarMap returns a copy of the template with its variable map set to m.
 func (t Template) WithVarMap(m map[string]any) Template {
-	t.vars = m
+	if m == nil {
+		t.vars = map[string]any{}
+	} else {
+		t.vars = m
+	}
 	return t
 }
 
 // WithTagMap returns a copy of the template with its tag map set to m.
 func (t Template) WithTagMap(m map[string]Tag) Template {
-	// Make sure the tag map is never nil to avoid panics
 	if m == nil {
-		m = map[string]Tag{}
+		t.tags = map[string]Tag{}
+	} else {
+		t.tags = m
 	}
-	t.tags = m
 	return t
 }
 

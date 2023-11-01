@@ -43,7 +43,13 @@ func New() *Namespace {
 func (n *Namespace) WithVarMap(m map[string]any) *Namespace {
 	n.mu.Lock()
 	defer n.mu.Unlock()
-	n.vars = m
+
+	if m == nil {
+		n.vars = map[string]any{}
+	} else {
+		n.vars = m
+	}
+
 	return n
 }
 
@@ -52,10 +58,10 @@ func (n *Namespace) WithTagMap(m map[string]Tag) *Namespace {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
-	if m != nil {
-		n.tags = m
-	} else {
+	if m == nil {
 		n.tags = map[string]Tag{}
+	} else {
+		n.tags = m
 	}
 
 	return n
