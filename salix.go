@@ -19,6 +19,7 @@
 package salix
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"html"
@@ -97,7 +98,9 @@ func (t Template) WithEscapeHTML(b bool) Template {
 // the result to w.
 func (t Template) Execute(w io.Writer) error {
 	t.macros = map[string][]ast.Node{}
-	return t.execute(w, t.ast, nil)
+	bw := bufio.NewWriterSize(w, 16384)
+	defer bw.Flush()
+	return t.execute(bw, t.ast, nil)
 }
 
 func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) error {
