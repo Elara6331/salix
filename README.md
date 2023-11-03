@@ -1,4 +1,4 @@
-<img src="https://github.com/Elara6331/salix/assets/41810442/49ed9aff-c800-4640-a4b0-187da58095c9" alt="Salix Logo" width="150">
+<img src="assets/icons/logo.svg" alt="Salix Logo" width="200">
 
 &nbsp;
 
