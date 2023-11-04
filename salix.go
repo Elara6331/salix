@@ -103,6 +103,10 @@ func (t Template) Execute(w io.Writer) error {
 }
 
 func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) error {
+	if local == nil {
+		local = map[string]any{}
+	}
+
 	for i := 0; i < len(nodes); i++ {
 		switch node := nodes[i].(type) {
 		case ast.Text:
