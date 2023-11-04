@@ -212,7 +212,7 @@ In this case, the expression will return the content of the `title` variable if 
 
 ### The `in` operator
 
-Salix's `in` operator allows you to check if a slice or array contains a specific element, or if a string contains a substring. Here's one example:
+Salix's `in` operator allows you to check if a slice or array contains an element, if a map contains a key, or if a string contains a substring. Here's one example:
 
 ```
 #("H" in "Hello") <!-- Returns true -->

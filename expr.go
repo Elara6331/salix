@@ -67,6 +67,12 @@ func (t *Template) performOp(a, b reflect.Value, op ast.Operator) (any, error) {
 			} else {
 				return nil, t.posError(op, "%w (%s and %s)", ErrTypeMismatch, a.Type(), b.Type())
 			}
+		case reflect.Map:
+			if a.CanConvert(b.Type().Key()) {
+				a = a.Convert(b.Type().Key())
+			} else {
+				return nil, t.posError(op, "%w (%s and %s)", ErrTypeMismatch, a.Type(), b.Type())
+			}
 		case reflect.String:
 			if a.Kind() != reflect.String {
 				return nil, t.posError(op, "%w (%s and %s)", ErrTypeMismatch, a.Type(), b.Type())
@@ -179,7 +185,9 @@ func (t *Template) performOp(a, b reflect.Value, op ast.Operator) (any, error) {
 	case "in":
 		if a.Kind() == reflect.String && b.Kind() == reflect.String {
 			return strings.Contains(b.String(), a.String()), nil
-		} else {
+		} else if b.Kind() == reflect.Map {
+			return b.MapIndex(a).IsValid(), nil
+		} else if b.Kind() == reflect.Slice || b.Kind() == reflect.Array {
 			for i := 0; i < b.Len(); i++ {
 				if a.Equal(b.Index(i)) {
 					return true, nil
