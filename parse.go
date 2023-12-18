@@ -39,7 +39,9 @@ func (n *Namespace) ParseWithName(name string, r io.Reader) (Template, error) {
 		vars: map[string]any{},
 	}
 
-	performWhitespaceMutations(t.ast)
+	if n.WhitespaceMutations {
+		performWhitespaceMutations(t.ast)
+	}
 
 	n.mu.Lock()
 	defer n.mu.Unlock()

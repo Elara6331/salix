@@ -9,15 +9,20 @@ type Namespace struct {
 	vars  map[string]any
 	tags  map[string]Tag
 
-	escapeHTML *bool
+	// WhitespaceMutations enables postprocessing to remove whitespace where it isn't needed
+	// to make the resulting document look better. Postprocessing is only done oncewhen the
+	// template is parsed, so it will not affect performance. (default: true)
+	WhitespaceMutations bool
+	escapeHTML          *bool
 }
 
 // New returns a new template namespace
 func New() *Namespace {
 	return &Namespace{
-		tmpls: map[string]Template{},
-		vars:  map[string]any{},
-		tags:  map[string]Tag{},
+		tmpls:               map[string]Template{},
+		vars:                map[string]any{},
+		tags:                map[string]Tag{},
+		WhitespaceMutations: true,
 	}
 }
 
@@ -49,11 +54,19 @@ func (n *Namespace) WithTagMap(m map[string]Tag) *Namespace {
 	return n
 }
 
-// WithVarMap turns HTML escaping on or off for the namespace
+// WithEscapeHTML turns HTML escaping on or off for the namespace
 func (n *Namespace) WithEscapeHTML(b bool) *Namespace {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	n.escapeHTML = &b
+	return n
+}
+
+// WithWhitespaceMutations turns whitespace mutations on or off for the namespace
+func (n *Namespace) WithWhitespaceMutations(b bool) *Namespace {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+	n.WhitespaceMutations = true
 	return n
 }
 
