@@ -150,9 +150,9 @@ func TestIndex(t *testing.T) {
 }
 
 func TestFuncCall(t *testing.T) {
-	res := execStr(t, `#(len(3.0))`, nil)
-	if res != "-1" {
-		t.Errorf("Expected %q, got %q", "-1", res)
+	res := execStr(t, `#(toUpper("hello"))`, nil)
+	if res != "HELLO" {
+		t.Errorf("Expected %q, got %q", "HELLO", res)
 	}
 }
 
