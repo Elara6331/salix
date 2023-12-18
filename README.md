@@ -168,7 +168,7 @@ Functions used in a template can accept any number of arguments but are limited 
 
 Salix includes several useful global functions in all templates:
 
-- `len(v any) int`: Returns the length of the value passed in. If the length cannot be found, it returns `-1`.
+- `len(v any) int`: Returns the length of the value passed in. If the length can't be found for the value passed in, it returns an error.
 - `toUpper(s string) string`: Returns `s`, but with all characters mapped to their uppercase equivalents.
 - `toLower(s string) string`: Returns `s`, but with all characters mapped to their lowercase equivalents.
 - `hasPrefix(s, prefix string) bool`: Returns true if `s` starts with `prefix`.
