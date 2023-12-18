@@ -39,6 +39,7 @@ var globalTags = map[string]Tag{
 
 // TagContext is passed to Tag implementations to allow them to control the interpreter
 type TagContext struct {
+	Tag   ast.Tag
 	w     io.Writer
 	t     *Template
 	local map[string]any
@@ -63,6 +64,18 @@ func (tc *TagContext) ExecuteToMemory(nodes []ast.Node, local map[string]any) ([
 // GetValue evaluates the given AST node using the given local variables.
 func (tc *TagContext) GetValue(node ast.Node, local map[string]any) (any, error) {
 	return tc.t.getValue(node, mergeMap(tc.local, local))
+}
+
+// PosError returns an error with the file position prepended. This should be used
+// for errors wherever possible, to make it easier for users to find errors.
+func (tc *TagContext) PosError(node ast.Node, format string, v ...any) error {
+	return ast.PosError(node, format, v...)
+}
+
+// NodeToString returns a textual representation of the given AST node for users to see,
+// such as in error messages. This does not directly correlate to Salix source code.
+func (tc *TagContext) NodeToString(node ast.Node) string {
+	return valueToString(node)
 }
 
 // Write writes b to the underlying writer. It implements

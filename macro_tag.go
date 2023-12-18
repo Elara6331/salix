@@ -1,22 +1,13 @@
 package salix
 
-import (
-	"errors"
-
-	"go.elara.ws/salix/ast"
-)
-
-var (
-	ErrMacroInvalidArgs = errors.New("macro expects one string argument followed by variable assignments")
-	ErrNoSuchMacro      = errors.New("no such template")
-)
+import "go.elara.ws/salix/ast"
 
 // macroTag represents an #macro tag within a Salix template
 type macroTag struct{}
 
 func (mt macroTag) Run(tc *TagContext, block, args []ast.Node) error {
 	if len(args) < 1 {
-		return ErrMacroInvalidArgs
+		return tc.PosError(tc.Tag, "expected at least one argument, got %d", len(args))
 	}
 
 	nameVal, err := tc.GetValue(args[0], nil)
@@ -26,7 +17,7 @@ func (mt macroTag) Run(tc *TagContext, block, args []ast.Node) error {
 
 	name, ok := nameVal.(string)
 	if !ok {
-		return ErrMacroInvalidArgs
+		return tc.PosError(args[0], "invalid first argument type: %T (expected string)", nameVal)
 	}
 
 	if len(block) == 0 {
@@ -43,13 +34,13 @@ func (mt macroTag) Run(tc *TagContext, block, args []ast.Node) error {
 				local[a.Name.Value] = val
 			} else {
 				// If the argument isn't an assigment, return invalid args
-				return ErrMacroInvalidArgs
+				return tc.PosError(arg, "%s: invalid argument type: %T (expected ast.Assignment)", tc.NodeToString(arg), arg)
 			}
 		}
 
 		macro, ok := tc.t.macros[name]
 		if !ok {
-			return ErrNoSuchMacro
+			return tc.PosError(tc.Tag, "no such macro: %q", name)
 		}
 		return tc.Execute(macro, local)
 	} else {

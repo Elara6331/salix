@@ -34,7 +34,7 @@ type includeTag struct{}
 
 func (it includeTag) Run(tc *TagContext, block, args []ast.Node) error {
 	if len(args) < 1 {
-		return ErrIncludeInvalidArgs
+		return tc.PosError(tc.Tag, "expected at least one argument, got %d", len(args))
 	}
 
 	val, err := tc.GetValue(args[0], nil)
@@ -44,12 +44,12 @@ func (it includeTag) Run(tc *TagContext, block, args []ast.Node) error {
 
 	name, ok := val.(string)
 	if !ok {
-		return ErrIncludeInvalidArgs
+		return tc.PosError(args[0], "invalid first argument type: %T (expected string)", val)
 	}
 
 	tmpl, ok := tc.t.ns.GetTemplate(name)
 	if !ok {
-		return ErrNoSuchTemplate
+		return tc.PosError(args[0], "no such template: %q", name)
 	}
 
 	local := map[string]any{}
@@ -64,8 +64,8 @@ func (it includeTag) Run(tc *TagContext, block, args []ast.Node) error {
 			}
 			local[a.Name.Value] = val
 		} else {
-			// If the argument isn't an assigment, return invalid args
-			return ErrIncludeInvalidArgs
+			// If the argument isn't an assigment, return an error
+			return tc.PosError(tc.Tag, "invalid argument type: %T (expected ast.Assignment)", val)
 		}
 	}
 

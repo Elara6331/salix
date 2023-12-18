@@ -41,6 +41,7 @@ func toNodeSlice(v any) []ast.Node {
 
 func getPos(c *current) ast.Position {
     return ast.Position{
+        Name: c.globalStore["name"].(string),
         Line: c.pos.line,
         Col:  c.pos.col,
     }

@@ -19,6 +19,7 @@
 package salix
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -38,12 +39,12 @@ var globalVars = map[string]any{
 	"join":       strings.Join,
 }
 
-func tmplLen(v any) int {
+func tmplLen(v any) (int, error) {
 	val := reflect.ValueOf(v)
 	switch val.Kind() {
 	case reflect.Array, reflect.Slice, reflect.String, reflect.Map:
-		return val.Len()
+		return val.Len(), nil
 	default:
-		return -1
+		return 0, fmt.Errorf("cannot get length of %T", v)
 	}
 }

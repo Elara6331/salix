@@ -44,7 +44,7 @@ func (n *Namespace) Parse(r NamedReader) (Template, error) {
 
 // ParseWithFilename parses a salix template from r, using the given name.
 func (n *Namespace) ParseWithName(name string, r io.Reader) (Template, error) {
-	astVal, err := parser.ParseReader(name, r)
+	astVal, err := parser.ParseReader(name, r, parser.GlobalStore("name", name))
 	if err != nil {
 		return Template{}, err
 	}

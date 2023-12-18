@@ -19,8 +19,8 @@ package ast
 
 import "fmt"
 
-func PosError(n Node, filename, format string, v ...any) error {
-	return fmt.Errorf(filename+":"+n.Pos().String()+": "+format, v...)
+func PosError(n Node, format string, v ...any) error {
+	return fmt.Errorf(n.Pos().String()+": "+format, v...)
 }
 
 type Node interface {
@@ -28,12 +28,13 @@ type Node interface {
 }
 
 type Position struct {
+	Name string
 	Line int
 	Col  int
 }
 
 func (p Position) String() string {
-	return fmt.Sprintf("%d:%d", p.Line, p.Col)
+	return fmt.Sprintf("%s: line %d, col %d", p.Name, p.Line, p.Col)
 }
 
 type Tag struct {

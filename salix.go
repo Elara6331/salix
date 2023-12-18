@@ -25,28 +25,9 @@ import (
 	"html"
 	"io"
 	"reflect"
+	"strconv"
 
 	"go.elara.ws/salix/ast"
-)
-
-var (
-	ErrNoSuchFunc           = errors.New("no such function")
-	ErrNoSuchVar            = errors.New("no such variable")
-	ErrNoSuchMethod         = errors.New("no such method")
-	ErrNoSuchField          = errors.New("no such field")
-	ErrNoSuchTag            = errors.New("no such tag")
-	ErrNotOperatorNonBool   = errors.New("not operator cannot be used on a non-bool value")
-	ErrParamNumMismatch     = errors.New("incorrect parameter amount")
-	ErrIncorrectParamType   = errors.New("incorrect parameter type for function")
-	ErrEndTagWithoutStart   = errors.New("end tag without a start tag")
-	ErrIncorrectIndexType   = errors.New("incorrect index type")
-	ErrIndexOutOfRange      = errors.New("index out of range")
-	ErrMapIndexNotFound     = errors.New("map index not found")
-	ErrMapInvalidIndexType  = errors.New("invalid map index type")
-	ErrFuncTooManyReturns   = errors.New("template functions can only have two return values")
-	ErrFuncNoReturns        = errors.New("template functions must return at least one value")
-	ErrFuncSecondReturnType = errors.New("the second return value of a template function must be an error")
-	ErrTernaryCondBool      = errors.New("ternary condition must be a boolean")
 )
 
 // HTML represents unescaped HTML strings
@@ -112,7 +93,7 @@ func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) 
 		case ast.Text:
 			_, err := w.Write(node.Data)
 			if err != nil {
-				return t.posError(node, "%w", err)
+				return ast.PosError(node, "%w", err)
 			}
 		case ast.Tag:
 			newOffset, err := t.execTag(node, w, nodes, i, local)
@@ -125,7 +106,7 @@ func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) 
 			// should be taken care of by execTag, so if we do,
 			// return an error because execTag was never called,
 			// which means there was no start tag.
-			return ErrEndTagWithoutStart
+			return ast.PosError(node, "end tag without a matching start tag: %s", node.Name.Value)
 		case ast.ExprTag:
 			v, err := t.getValue(node.Value, local)
 			if err != nil {
@@ -235,6 +216,76 @@ func (t *Template) getValue(node ast.Node, local map[string]any) (any, error) {
 	}
 }
 
+// valueToString converts an AST node to a textual representation
+// for the user to see, such as in error messages. This does not
+// directly correlate to Salix source code.
+func valueToString(node ast.Node) string {
+	if node == nil {
+		return "<nil>"
+	}
+
+	switch node := node.(type) {
+	case ast.Ident:
+		return node.Value
+	case ast.String:
+		return strconv.Quote(node.Value)
+	case ast.Integer:
+		return strconv.FormatInt(node.Value, 10)
+	case ast.Float:
+		return strconv.FormatFloat(node.Value, 'g', -1, 64)
+	case ast.Bool:
+		return strconv.FormatBool(node.Value)
+	case ast.Assignment:
+		return node.Name.Value + " = " + valueToString(node.Value)
+	case ast.Index:
+		return valueToString(node.Value) + "[" + valueToString(node.Index) + "]"
+	case ast.Ternary:
+		return valueToString(node.Condition) + " ? " + valueToString(node.IfTrue) + " : " + valueToString(node.Else)
+	case ast.FieldAccess:
+		return valueToString(node.Value) + "." + node.Name.Value
+	case ast.Value:
+		if node.Not {
+			return "!" + valueToString(node.Node)
+		}
+		return valueToString(node.Node)
+	case ast.FuncCall:
+		if len(node.Params) > 1 {
+			return node.Name.Value + "(" + valueToString(node.Params[0]) + ", ...)"
+		} else if len(node.Params) == 1 {
+			return node.Name.Value + "(" + valueToString(node.Params[0]) + ")"
+		} else {
+			return node.Name.Value + "()"
+		}
+	case ast.MethodCall:
+		if len(node.Params) > 1 {
+			return valueToString(node.Value) + "." + node.Name.Value + "(" + valueToString(node.Params[0]) + ", ...)"
+		} else if len(node.Params) == 1 {
+			return valueToString(node.Value) + "." + node.Name.Value + "(" + valueToString(node.Params[0]) + ")"
+		} else {
+			return valueToString(node.Value) + "." + node.Name.Value + "()"
+		}
+	case ast.Expr:
+		if len(node.Rest) == 0 {
+			return valueToString(node.First)
+		}
+		return valueToString(node.First) + node.Rest[0].Operator.Value + valueToString(node.Rest[0])
+	case ast.Tag:
+		if len(node.Params) > 1 {
+			return "#" + node.Name.Value + "(" + valueToString(node.Params[0]) + ", ...)"
+		} else if len(node.Params) == 1 {
+			return "#" + node.Name.Value + "(" + valueToString(node.Params[0]) + ")"
+		} else {
+			return "#" + node.Name.Value + "()"
+		}
+	case ast.EndTag:
+		return "#" + node.Name.Value
+	case ast.ExprTag:
+		return "#(" + valueToString(node.Value) + ")"
+	default:
+		return "..."
+	}
+}
+
 // unwrapASTValue unwraps an ast.Value node into its underlying value
 func (t *Template) unwrapASTValue(node ast.Value, local map[string]any) (any, error) {
 	v, err := t.getValue(node.Node, local)
@@ -245,7 +296,7 @@ func (t *Template) unwrapASTValue(node ast.Value, local map[string]any) (any, er
 	if node.Not {
 		rval := reflect.ValueOf(v)
 		if rval.Kind() != reflect.Bool {
-			return nil, ErrNotOperatorNonBool
+			return nil, ast.PosError(node, "%s: the ! operator can only be used on boolean values", valueToString(node))
 		}
 		return !rval.Bool(), nil
 	}
@@ -279,7 +330,7 @@ func (t *Template) getVar(id ast.Ident, local map[string]any) (any, error) {
 		return v, nil
 	}
 
-	return reflect.Value{}, t.posError(id, "%w: %s", ErrNoSuchVar, id.Value)
+	return reflect.Value{}, ast.PosError(id, "no such variable: %s", id.Value)
 }
 
 func (t *Template) getTag(name string) (Tag, bool) {
@@ -305,7 +356,7 @@ func (t *Template) getTag(name string) (Tag, bool) {
 func (t *Template) execTag(node ast.Tag, w io.Writer, nodes []ast.Node, i int, local map[string]any) (newOffset int, err error) {
 	tag, ok := t.getTag(node.Name.Value)
 	if !ok {
-		return 0, t.posError(node, "%w: %s", ErrNoSuchTag, node.Name.Value)
+		return 0, ast.PosError(node, "no such tag: %s", node.Name.Value)
 	}
 
 	var block []ast.Node
@@ -314,11 +365,11 @@ func (t *Template) execTag(node ast.Tag, w io.Writer, nodes []ast.Node, i int, l
 		i += len(block) + 1
 	}
 
-	tc := &TagContext{w, t, local}
+	tc := &TagContext{node, w, t, local}
 
 	err = tag.Run(tc, block, node.Params)
 	if err != nil {
-		return 0, err
+		return 0, errors.Join(ast.PosError(node, "%s ->", valueToString(node)), err)
 	}
 
 	return i, nil
@@ -328,7 +379,7 @@ func (t *Template) execTag(node ast.Tag, w io.Writer, nodes []ast.Node, i int, l
 func (t *Template) execFuncCall(fc ast.FuncCall, local map[string]any) (any, error) {
 	fn, err := t.getVar(fc.Name, local)
 	if err != nil {
-		return nil, t.posError(fc, "%w: %s", ErrNoSuchFunc, fc.Name.Value)
+		return nil, ast.PosError(fc, "no such function: %s", fc.Name.Value)
 	}
 	return t.execFunc(reflect.ValueOf(fn), fc, fc.Params, local)
 }
@@ -348,33 +399,34 @@ func (t *Template) getIndex(i ast.Index, local map[string]any) (any, error) {
 	rval := reflect.ValueOf(val)
 	rindex := reflect.ValueOf(index)
 	switch rval.Kind() {
-	case reflect.Slice, reflect.Array:
+	case reflect.Slice, reflect.Array, reflect.String:
 		intType := reflect.TypeOf(0)
 		if rindex.CanConvert(intType) {
 			rindex = rindex.Convert(intType)
 		} else {
-			return nil, ErrIncorrectIndexType
+			return nil, ast.PosError(i, "%s: invalid index type: %T", valueToString(i), index)
 		}
 
 		intIndex := rindex.Interface().(int)
 		if intIndex < rval.Len() {
 			return rval.Index(intIndex).Interface(), nil
 		} else {
-			return nil, t.posError(i, "%w: %d", ErrIndexOutOfRange, intIndex)
+			return nil, ast.PosError(i, "%s: index out of range: %d", valueToString(i), intIndex)
 		}
 	case reflect.Map:
 		if rindex.CanConvert(rval.Type().Key()) {
 			rindex = rindex.Convert(rval.Type().Key())
 		} else {
-			return nil, t.posError(i, "%w: %T (expected %s)", ErrMapInvalidIndexType, index, rval.Type().Key())
+			return nil, ast.PosError(i, "%s: invalid map index type: %T (expected %s)", valueToString(i), index, rval.Type().Key())
 		}
 		if out := rval.MapIndex(rindex); out.IsValid() {
 			return out.Interface(), nil
 		} else {
-			return nil, t.posError(i, "%w: %q", ErrMapIndexNotFound, index)
+			return nil, ast.PosError(i, "%s: map index not found: %q", valueToString(i), index)
 		}
+	default:
+		return nil, ast.PosError(i, "%s: cannot index type: %T", valueToString(i), val)
 	}
-	return nil, nil
 }
 
 // getField tries to get a struct field from the underlying value
@@ -389,7 +441,7 @@ func (t *Template) getField(fa ast.FieldAccess, local map[string]any) (any, erro
 	}
 	field := rval.FieldByName(fa.Name.Value)
 	if !field.IsValid() {
-		return nil, t.posError(fa, "%w: %s", ErrNoSuchField, fa.Name.Value)
+		return nil, ast.PosError(fa, "%s: no such field: %s", valueToString(fa), fa.Name.Value)
 	}
 	return field.Interface(), nil
 }
@@ -406,7 +458,7 @@ func (t *Template) execMethodCall(mc ast.MethodCall, local map[string]any) (any,
 	}
 	mtd := rval.MethodByName(mc.Name.Value)
 	if !mtd.IsValid() {
-		return nil, t.posError(mc, "%w: %s", ErrNoSuchMethod, mc.Name.Value)
+		return nil, ast.PosError(mc, "no such method: %s", mc.Name.Value)
 	}
 	return t.execFunc(mtd, mc, mc.Params, local)
 }
@@ -415,17 +467,17 @@ func (t *Template) execMethodCall(mc ast.MethodCall, local map[string]any) (any,
 func (t *Template) execFunc(fn reflect.Value, node ast.Node, args []ast.Node, local map[string]any) (any, error) {
 	fnType := fn.Type()
 	if fnType.NumIn() != len(args) {
-		return nil, t.posError(node, "%w: %d (expected %d)", ErrParamNumMismatch, len(args), fnType.NumIn())
+		return nil, ast.PosError(node, "%s: invalid parameter amount: %d (expected %d)", valueToString(node), len(args), fnType.NumIn())
 	}
 
-	if err := validateFunc(fnType); err != nil {
-		return nil, t.posError(node, "%w", err)
+	if err := validateFunc(fnType, node); err != nil {
+		return nil, err
 	}
 
 	params := make([]reflect.Value, fnType.NumIn())
 	for i, arg := range args {
 		if _, ok := arg.(ast.Assignment); ok {
-			return nil, t.posError(arg, "assignment cannot be used as a function argument")
+			return nil, ast.PosError(arg, "%s: an assignment cannot be used as a function argument", valueToString(node))
 		}
 		paramVal, err := t.getValue(arg, local)
 		if err != nil {
@@ -435,7 +487,7 @@ func (t *Template) execFunc(fn reflect.Value, node ast.Node, args []ast.Node, lo
 		if params[i].CanConvert(fnType.In(i)) {
 			params[i] = params[i].Convert(fnType.In(i))
 		} else {
-			return nil, t.posError(node, "%w", ErrIncorrectParamType)
+			return nil, ast.PosError(node, "%s: invalid parameter type: %T (expected %s)", valueToString(node), paramVal, fnType.In(i))
 		}
 	}
 
@@ -443,23 +495,26 @@ func (t *Template) execFunc(fn reflect.Value, node ast.Node, args []ast.Node, lo
 	if len(ret) == 1 {
 		retv := ret[0].Interface()
 		if err, ok := retv.(error); ok {
-			return nil, err
+			return nil, ast.PosError(node, "%s: %w", valueToString(node), err)
 		}
 		return ret[0].Interface(), nil
 	} else {
-		return ret[0].Interface(), ret[1].Interface().(error)
+		if ret[1].IsNil() {
+			return ret[0].Interface(), nil
+		}
+		return ret[0].Interface(), ast.PosError(node, "%s: %w", valueToString(node), ret[1].Interface().(error))
 	}
 }
 
 func (t *Template) evalTernary(tr ast.Ternary, local map[string]any) (any, error) {
 	condVal, err := t.getValue(tr.Condition, local)
 	if err != nil {
-		return nil, t.posError(tr.Condition, "%w", ErrTernaryCondBool)
+		return nil, err
 	}
 
 	cond, ok := condVal.(bool)
 	if !ok {
-		return nil, errors.New("ternary condition must be a boolean")
+		return nil, ast.PosError(tr.Condition, "%s: ternary condition must be a boolean value", valueToString(tr.Condition))
 	}
 
 	if cond {
@@ -486,21 +541,17 @@ func (t *Template) handleAssignment(a ast.Assignment, local map[string]any) erro
 	return nil
 }
 
-func (t *Template) posError(n ast.Node, format string, v ...any) error {
-	return ast.PosError(n, t.name, format, v...)
-}
-
-func validateFunc(t reflect.Type) error {
+func validateFunc(t reflect.Type, node ast.Node) error {
 	numOut := t.NumOut()
 	if numOut > 2 {
-		return ErrFuncTooManyReturns
+		return ast.PosError(node, "template functions cannot have more than two return values")
 	} else if numOut == 0 {
-		return ErrFuncNoReturns
+		return ast.PosError(node, "template functions must have at least one return value")
 	}
-
 	if numOut == 2 {
-		if !t.Out(1).Implements(reflect.TypeOf(error(nil))) {
-			return ErrFuncSecondReturnType
+		errType := reflect.TypeOf((*error)(nil)).Elem()
+		if !t.Out(1).Implements(errType) {
+			return ast.PosError(node, "the second return value of a template function must be an error")
 		}
 	}
 

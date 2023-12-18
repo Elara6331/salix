@@ -19,33 +19,30 @@
 package salix
 
 import (
-	"errors"
 	"reflect"
 
 	"go.elara.ws/salix/ast"
 )
-
-var ErrForTagInvalidArgs = errors.New("invalid arguments in for tag")
 
 // forTag represents a #for tag within a Salix template
 type forTag struct{}
 
 func (ft forTag) Run(tc *TagContext, block, args []ast.Node) error {
 	if len(args) == 0 || len(args) > 2 {
-		return ErrForTagInvalidArgs
+		return tc.PosError(tc.Tag, "invalid argument amount")
 	}
 
 	var expr ast.Expr
 	if len(args) == 1 {
 		expr2, ok := args[0].(ast.Expr)
 		if !ok {
-			return ErrForTagInvalidArgs
+			return tc.PosError(args[0], "invalid argument type: %T (expected ast.Expr)", args[0])
 		}
 		expr = expr2
 	} else if len(args) == 2 {
 		expr2, ok := args[1].(ast.Expr)
 		if !ok {
-			return ErrForTagInvalidArgs
+			return tc.PosError(args[1], "invalid argument type: %T (expected ast.Expr)", args[1])
 		}
 		expr = expr2
 	}
@@ -56,25 +53,24 @@ func (ft forTag) Run(tc *TagContext, block, args []ast.Node) error {
 	if len(args) == 2 {
 		varName, ok := unwrap(args[0]).(ast.Ident)
 		if !ok {
-			return ErrForTagInvalidArgs
+			return tc.PosError(args[0], "invalid argument type: %T (expected ast.Ident)", expr.First)
 		}
 		vars = append(vars, varName.Value)
-
 	}
 
 	varName, ok := unwrap(expr.First).(ast.Ident)
 	if !ok {
-		return ErrForTagInvalidArgs
+		return tc.PosError(expr.First, "invalid argument type: %T (expected ast.Ident)", args[0])
 	}
 	vars = append(vars, varName.Value)
 
 	if len(expr.Rest) != 1 {
-		return ErrForTagInvalidArgs
+		return tc.PosError(expr.First, "invalid expression (expected 1 element, got %d)", len(expr.Rest))
 	}
 	rest := expr.Rest[0]
 
 	if rest.Operator.Value != "in" {
-		return ErrForTagInvalidArgs
+		return tc.PosError(expr.First, `invalid operator in expression (expected "in", got %q)`, rest.Operator.Value)
 	}
 
 	val, err := tc.GetValue(rest, nil)
