@@ -250,7 +250,7 @@ LogicalOp = ("||" / "&&") {
     }, nil
 }
 
-ComparisonOp = ("==" / "<=" / ">=" / '<' / '>' / "in"i) {
+ComparisonOp = ("==" / "!=" / "<=" / ">=" / '<' / '>' / "in"i) {
     return ast.Operator{
         Value:    string(c.text),
         Position: getPos(c),
