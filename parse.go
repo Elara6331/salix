@@ -135,6 +135,9 @@ func performWhitespaceMutations(nodes []ast.Node) {
 			handleWhitespace(nodes, i)
 			lastTag = node.Position.Line
 		case ast.EndTag:
+			// If the end tag isn't on the same line as the
+			// last start tag, it's not inline, so we can
+			// get rid of its whitespace.
 			if lastTag != node.Position.Line {
 				handleWhitespace(nodes, i)
 			}
