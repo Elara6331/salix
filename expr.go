@@ -63,6 +63,8 @@ func (t *Template) performOp(a, b reflect.Value, op ast.Operator) (any, error) {
 	switch op.Value {
 	case "==":
 		return a.Equal(b), nil
+	case "!=":
+		return !a.Equal(b), nil
 	case "&&":
 		if a.Kind() != reflect.Bool || b.Kind() != reflect.Bool {
 			return nil, ast.PosError(op, "logical operations may only be performed on boolean values")
