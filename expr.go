@@ -172,5 +172,5 @@ func (t *Template) performOp(a, b reflect.Value, op ast.Operator) (any, error) {
 			return false, nil
 		}
 	}
-	return false, nil
+	return false, ast.PosError(op, "unknown operator: %q", op.Value)
 }
