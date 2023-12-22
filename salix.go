@@ -438,11 +438,18 @@ func (t *Template) execMethodCall(mc ast.MethodCall, local map[string]any) (any,
 	for rval.Kind() == reflect.Pointer {
 		rval = rval.Elem()
 	}
+	// First, check for a method with the given name
 	mtd := rval.MethodByName(mc.Name.Value)
-	if !mtd.IsValid() {
-		return nil, ast.PosError(mc, "no such method: %s", mc.Name.Value)
+	if mtd.IsValid() {
+		return t.execFunc(mtd, mc, mc.Params, local)
 	}
-	return t.execFunc(mtd, mc, mc.Params, local)
+	// If the method doesn't exist, also check for a field storing a function.
+	field := rval.FieldByName(mc.Name.Value)
+	if field.IsValid() && field.Kind() == reflect.Func {
+		return t.execFunc(field, mc, mc.Params, local)
+	}
+	// If neither of those exist, return an error
+	return nil, ast.PosError(mc, "no such method: %s", mc.Name.Value)
 }
 
 // execFunc executes a function call

@@ -10,7 +10,7 @@ type Namespace struct {
 	tags  map[string]Tag
 
 	// WhitespaceMutations enables postprocessing to remove whitespace where it isn't needed
-	// to make the resulting document look better. Postprocessing is only done oncewhen the
+	// to make the resulting document look better. Postprocessing is only done once when the
 	// template is parsed, so it will not affect performance. (default: true)
 	WhitespaceMutations bool
 	escapeHTML          *bool
