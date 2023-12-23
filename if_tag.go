@@ -75,11 +75,20 @@ type elif struct {
 // findInner finds the inner elif and else tags in a block
 // passed to the if tag.
 func (it ifTag) findInner(tc *TagContext, block []ast.Node) (innerTags, error) {
+	// Depth keeps track of nested if statements. We only want to look for
+	// else/elif tags within the current if tag, not any nested ones.
+	depth := 0
 	var out innerTags
 	for i, node := range block {
-		if tag, ok := node.(ast.Tag); ok {
+		switch tag := node.(type) {
+		case ast.Tag:
 			switch tag.Name.Value {
+			case "if":
+				depth++
 			case "elif":
+				if depth != 0 {
+					continue
+				}
 				if out.endRoot == 0 {
 					out.endRoot = i
 				}
@@ -91,6 +100,9 @@ func (it ifTag) findInner(tc *TagContext, block []ast.Node) (innerTags, error) {
 					value: tag.Params[0],
 				})
 			case "else":
+				if depth != 0 {
+					continue
+				}
 				if out.elseIndex != 0 {
 					return innerTags{}, tc.PosError(tag, "cannot have more than one else tag in an if tag")
 				}
@@ -99,6 +111,10 @@ func (it ifTag) findInner(tc *TagContext, block []ast.Node) (innerTags, error) {
 				}
 				out.elseIndex = i
 				break
+			}
+		case ast.EndTag:
+			if tag.Name.Value == "if" {
+				depth--
 			}
 		}
 	}
