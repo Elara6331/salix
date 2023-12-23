@@ -250,7 +250,7 @@ func valueToString(node ast.Node) string {
 		if len(node.Rest) == 0 {
 			return valueToString(node.First)
 		}
-		return valueToString(node.First) + node.Rest[0].Operator.Value + valueToString(node.Rest[0])
+		return valueToString(node.First) + " " + node.Rest[0].Operator.Value + " " + valueToString(node.Rest[0])
 	case ast.Tag:
 		if len(node.Params) > 1 {
 			return "#" + node.Name.Value + "(" + valueToString(node.Params[0]) + ", ...)"
@@ -260,7 +260,7 @@ func valueToString(node ast.Node) string {
 			return "#" + node.Name.Value + "()"
 		}
 	case ast.EndTag:
-		return "#" + node.Name.Value
+		return "#!" + node.Name.Value
 	case ast.ExprTag:
 		return "#(" + valueToString(node.Value) + ")"
 	default:
