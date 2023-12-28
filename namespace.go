@@ -1,6 +1,10 @@
 package salix
 
-import "sync"
+import (
+	"fmt"
+	"io"
+	"sync"
+)
 
 // Namespace represents a collection of templates that can include each other
 type Namespace struct {
@@ -78,6 +82,25 @@ func (n *Namespace) GetTemplate(name string) (Template, bool) {
 	defer n.mu.Unlock()
 	t, ok := n.tmpls[name]
 	return t, ok
+}
+
+// MustGetTemplate is the same as GetTemplate but it panics if the template
+// doesn't exist in the namespace.
+func (n *Namespace) MustGetTemplate(name string) Template {
+	tmpl, ok := n.GetTemplate(name)
+	if !ok {
+		panic(fmt.Errorf("no such template: %q", name))
+	}
+	return tmpl
+}
+
+// ExecuteTemplate gets and executes a template with the given name.
+func (n *Namespace) ExecuteTemplate(w io.Writer, name string, vars map[string]any) error {
+	tmpl, ok := n.GetTemplate(name)
+	if !ok {
+		return fmt.Errorf("no such template: %q", name)
+	}
+	return tmpl.WithVarMap(vars).Execute(w)
 }
 
 // getVar tries to get a variable from the namespace's variable map
