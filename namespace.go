@@ -17,7 +17,10 @@ type Namespace struct {
 	// to make the resulting document look better. Postprocessing is only done once when the
 	// template is parsed, so it will not affect performance. (default: true)
 	WhitespaceMutations bool
-	escapeHTML          *bool
+	// WriteOnSuccess indicates whether the output should only be written if generation fully succeeds.
+	// This option buffers the output of the template, so it will use more memory. (default: false)
+	WriteOnSuccess bool
+	escapeHTML     *bool
 }
 
 // New returns a new template namespace
@@ -27,6 +30,7 @@ func New() *Namespace {
 		vars:                map[string]any{},
 		tags:                map[string]Tag{},
 		WhitespaceMutations: true,
+		WriteOnSuccess:      false,
 	}
 }
 
@@ -63,6 +67,14 @@ func (n *Namespace) WithEscapeHTML(b bool) *Namespace {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	n.escapeHTML = &b
+	return n
+}
+
+// WithWriteOnSuccess enables or disables only writing if generation fully succeeds.
+func (n *Namespace) WithWriteOnSuccess(b bool) *Namespace {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+	n.WriteOnSuccess = true
 	return n
 }
 

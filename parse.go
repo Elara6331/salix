@@ -32,11 +32,12 @@ func (n *Namespace) ParseWithName(name string, r io.Reader) (Template, error) {
 	}
 
 	t := Template{
-		ns:   n,
-		name: name,
-		ast:  astVal.([]ast.Node),
-		tags: map[string]Tag{},
-		vars: map[string]any{},
+		ns:             n,
+		name:           name,
+		ast:            astVal.([]ast.Node),
+		tags:           map[string]Tag{},
+		vars:           map[string]any{},
+		WriteOnSuccess: n.WriteOnSuccess,
 	}
 
 	if n.WhitespaceMutations {

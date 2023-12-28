@@ -2,6 +2,7 @@ package salix
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"html"
@@ -22,6 +23,9 @@ type Template struct {
 	ast  []ast.Node
 
 	escapeHTML *bool
+	// WriteOnSuccess indicates whether the output should only be written if generation fully succeeds.
+	// This option buffers the output of the template, so it will use more memory. (default: false)
+	WriteOnSuccess bool
 
 	tags   map[string]Tag
 	vars   map[string]any
@@ -56,13 +60,29 @@ func (t Template) WithEscapeHTML(b bool) Template {
 	return t
 }
 
+// WithWriteOnSuccess enables or disables only writing if generation fully succeeds.
+func (t Template) WithWriteOnSuccess(b bool) Template {
+	t.WriteOnSuccess = true
+	return t
+}
+
 // Execute executes a parsed template and writes
 // the result to w.
 func (t Template) Execute(w io.Writer) error {
 	t.macros = map[string][]ast.Node{}
-	bw := bufio.NewWriterSize(w, 16384)
-	defer bw.Flush()
-	return t.execute(bw, t.ast, nil)
+	if t.WriteOnSuccess {
+		buf := &bytes.Buffer{}
+		err := t.execute(buf, t.ast, nil)
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(w, buf)
+		return err
+	} else {
+		bw := bufio.NewWriterSize(w, 16384)
+		defer bw.Flush()
+		return t.execute(bw, t.ast, nil)
+	}
 }
 
 func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) error {
