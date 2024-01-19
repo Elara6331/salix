@@ -19,6 +19,7 @@ var globalVars = map[string]any{
 	"count":      strings.Count,
 	"split":      strings.Split,
 	"join":       strings.Join,
+	"sprintf":    fmt.Sprintf,
 }
 
 func tmplLen(v any) (int, error) {
