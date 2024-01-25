@@ -172,6 +172,16 @@ func TestMethodCall(t *testing.T) {
 	}
 }
 
+func TestVariadic(t *testing.T) {
+	res := execStr(t, `#(sprintf("%s %d", x, y))`, map[string]any{
+		"x": "test",
+		"y": 4,
+	})
+	if res != "test 4" {
+		t.Errorf("Expected %q, got %q", "test 4", res)
+	}
+}
+
 func execStr(t *testing.T, tmplStr string, vars map[string]any) string {
 	t.Helper()
 	tmpl, err := New().ParseString("test", tmplStr)

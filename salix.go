@@ -477,7 +477,7 @@ func (t *Template) execFunc(fn reflect.Value, node ast.Node, args []ast.Node, lo
 	fnType := fn.Type()
 	lastIndex := fnType.NumIn() - 1
 	isVariadic := fnType.IsVariadic()
-		
+
 	if !isVariadic && fnType.NumIn() != len(args) {
 		return nil, ast.PosError(node, "%s: invalid parameter amount: %d (expected %d)", valueToString(node), len(args), fnType.NumIn())
 	}
@@ -496,18 +496,18 @@ func (t *Template) execFunc(fn reflect.Value, node ast.Node, args []ast.Node, lo
 			return nil, err
 		}
 		params = append(params, reflect.ValueOf(paramVal))
+
+		var paramType reflect.Type
 		if isVariadic && i >= lastIndex {
-			if params[i].CanConvert(fnType.In(lastIndex).Elem()) {
-				params[i] = params[i].Convert(fnType.In(lastIndex).Elem())
-			} else {
-				return nil, ast.PosError(node, "%s: invalid parameter type: %T (expected %s)", valueToString(node), paramVal, fnType.In(i))
-			}
+			paramType = fnType.In(lastIndex).Elem()
 		} else {
-			if params[i].CanConvert(fnType.In(i)) {
-				params[i] = params[i].Convert(fnType.In(i))
-			} else {
-				return nil, ast.PosError(node, "%s: invalid parameter type: %T (expected %s)", valueToString(node), paramVal, fnType.In(i))
-			}
+			paramType = fnType.In(i)
+		}
+
+		if params[i].CanConvert(paramType) {
+			params[i] = params[i].Convert(paramType)
+		} else {
+			return nil, ast.PosError(node, "%s: invalid parameter type: %T (expected %s)", valueToString(node), paramVal, paramType)
 		}
 	}
 
