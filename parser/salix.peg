@@ -75,7 +75,7 @@ EndTag = "#!" name:Ident {
     }, nil
 }
 
-ExprTag = "#(" item:Expr ')' ignoreErr:'?'? {
+ExprTag = '#' ignoreErr:'?'? '(' item:Expr ')' {
     return ast.ExprTag{
         Value:       item.(ast.Node),
         IgnoreError: ignoreErr != nil,

@@ -192,7 +192,7 @@ Salix's expressions mostly work like Go's, but there are some extra features wor
 
 ### Ignoring errors
 
-If you'd like to ignore errors in an expression tag, you can do that by adding a question mark at the end.
+If you'd like to ignore errors in an expression tag, you can do that by adding a question mark after the pound symbol.
 
 
 ```html
@@ -200,7 +200,7 @@ If you'd like to ignore errors in an expression tag, you can do that by adding a
 #(example.Example())
 
 <!-- This would ignore any error and keep executing the rest of the template -->
-#(example.Example())?
+#?(example.Example())
 ```
 
 ### Ternary Expressions
