@@ -402,6 +402,7 @@ func (t *Template) getIndex(i ast.Index, local map[string]any) (any, error) {
 		return nil, err
 	}
 
+	var out reflect.Value
 	rval := reflect.ValueOf(val)
 	rindex := reflect.ValueOf(index)
 	switch rval.Kind() {
@@ -415,7 +416,7 @@ func (t *Template) getIndex(i ast.Index, local map[string]any) (any, error) {
 
 		intIndex := rindex.Interface().(int)
 		if intIndex < rval.Len() {
-			return rval.Index(intIndex).Interface(), nil
+			out = rval.Index(intIndex)
 		} else {
 			return nil, ast.PosError(i, "%s: index out of range: %d", valueToString(i), intIndex)
 		}
@@ -425,14 +426,19 @@ func (t *Template) getIndex(i ast.Index, local map[string]any) (any, error) {
 		} else {
 			return nil, ast.PosError(i, "%s: invalid map index type: %T (expected %s)", valueToString(i), index, rval.Type().Key())
 		}
-		if out := rval.MapIndex(rindex); out.IsValid() {
-			return out.Interface(), nil
+		if mapVal := rval.MapIndex(rindex); mapVal.IsValid() {
+			out = mapVal
 		} else {
 			return nil, ast.PosError(i, "%s: map index not found: %q", valueToString(i), index)
 		}
 	default:
 		return nil, ast.PosError(i, "%s: cannot index type: %T", valueToString(i), val)
 	}
+
+	for out.Kind() == reflect.Pointer {
+		out = out.Elem()
+	}
+	return out.Interface(), nil
 }
 
 // getField tries to get a struct field from the underlying value
@@ -448,6 +454,9 @@ func (t *Template) getField(fa ast.FieldAccess, local map[string]any) (any, erro
 	field := rval.FieldByName(fa.Name.Value)
 	if !field.IsValid() {
 		return nil, ast.PosError(fa, "%s: no such field: %s", valueToString(fa), fa.Name.Value)
+	}
+	for field.Kind() == reflect.Pointer {
+		field = field.Elem()
 	}
 	return field.Interface(), nil
 }
