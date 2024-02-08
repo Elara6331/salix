@@ -32,8 +32,9 @@ func (t Tag) Pos() Position {
 }
 
 type ExprTag struct {
-	Value    Node
-	Position Position
+	Value       Node
+	IgnoreError bool
+	Position    Position
 }
 
 func (et ExprTag) Pos() Position {

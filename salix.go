@@ -112,7 +112,11 @@ func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) 
 		case ast.ExprTag:
 			v, err := t.getValue(node.Value, local)
 			if err != nil {
-				return err
+				if node.IgnoreError {
+					continue
+				} else {
+					return err
+				}
 			}
 			if _, ok := v.(ast.Assignment); ok {
 				continue

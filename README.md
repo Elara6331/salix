@@ -26,6 +26,7 @@ Salix's syntax is similar to Leaf and (in my opinion at least), it's much more f
   - [Global Functions](#global-functions)
   - [Adding Custom Functions](#adding-custom-functions)
 - [Expressions](#expressions)
+  - [Ignoring errors](#ignoring-errors)
   - [Ternary Expressions](#ternary-expressions)
   - [Coalescing operator](#coalescing-operator)
   - [The `in` operator](#the-in-operator)
@@ -188,6 +189,19 @@ You can include custom functions as variables using the WithVarMap method on tem
 ## Expressions
 
 Salix's expressions mostly work like Go's, but there are some extra features worth mentioning.
+
+### Ignoring errors
+
+If you'd like to ignore errors in an expression tag, you can do that by adding a question mark at the end.
+
+
+```html
+<!-- This would return an error if example wasn't defined or if it didn't have an Example() method -->
+#(example.Example())
+
+<!-- This would ignore any error and keep executing the rest of the template -->
+#(example.Example())?
+```
 
 ### Ternary Expressions
 

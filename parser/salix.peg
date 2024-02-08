@@ -75,10 +75,11 @@ EndTag = "#!" name:Ident {
     }, nil
 }
 
-ExprTag = "#(" item:Expr ')' {
+ExprTag = "#(" item:Expr ')' ignoreErr:'?'? {
     return ast.ExprTag{
-        Value:    item.(ast.Node),
-        Position: getPos(c),
+        Value:       item.(ast.Node),
+        IgnoreError: ignoreErr != nil,
+        Position:    getPos(c),
     }, nil
 }
 
