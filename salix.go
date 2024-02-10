@@ -404,7 +404,14 @@ func (t *Template) getIndex(i ast.Index, local map[string]any) (any, error) {
 
 	var out reflect.Value
 	rval := reflect.ValueOf(val)
+	if !rval.IsValid() {
+		return nil, ast.PosError(i, "%s: cannot get index of nil value", valueToString(i))
+	}
 	rindex := reflect.ValueOf(index)
+	if !rval.IsValid() {
+		return nil, ast.PosError(i, "%s: cannot use nil value as an index", valueToString(i))
+	}
+
 	switch rval.Kind() {
 	case reflect.Slice, reflect.Array, reflect.String:
 		intType := reflect.TypeOf(0)
@@ -448,8 +455,14 @@ func (t *Template) getField(fa ast.FieldAccess, local map[string]any) (any, erro
 		return nil, err
 	}
 	rval := reflect.ValueOf(val)
+	if !rval.IsValid() {
+		return nil, ast.PosError(fa, "%s: cannot get field of nil value", valueToString(fa))
+	}
 	for rval.Kind() == reflect.Pointer {
 		rval = rval.Elem()
+	}
+	if rval.Kind() != reflect.Struct || rval.NumField() == 0 {
+		return nil, ast.PosError(fa, "%s: value has no fields", valueToString(fa))
 	}
 	field := rval.FieldByName(fa.Name.Value)
 	if !field.IsValid() {
@@ -468,6 +481,9 @@ func (t *Template) execMethodCall(mc ast.MethodCall, local map[string]any) (any,
 		return nil, err
 	}
 	rval := reflect.ValueOf(val)
+	if !rval.IsValid() {
+		return nil, ast.PosError(mc, "%s: cannot call method on nil value", valueToString(mc))
+	}
 	for rval.Kind() == reflect.Pointer {
 		rval = rval.Elem()
 	}
@@ -487,6 +503,10 @@ func (t *Template) execMethodCall(mc ast.MethodCall, local map[string]any) (any,
 
 // execFunc executes a function call
 func (t *Template) execFunc(fn reflect.Value, node ast.Node, args []ast.Node, local map[string]any) (any, error) {
+	if !fn.IsValid() {
+		return nil, ast.PosError(node, "%s: cannot call nil function", valueToString(node))
+	}
+
 	fnType := fn.Type()
 	lastIndex := fnType.NumIn() - 1
 	isVariadic := fnType.IsVariadic()
@@ -525,12 +545,15 @@ func (t *Template) execFunc(fn reflect.Value, node ast.Node, args []ast.Node, lo
 	}
 
 	ret := fn.Call(params)
+	for ret[0].Kind() == reflect.Pointer {
+		ret[0] = ret[0].Elem()
+	}
 	if len(ret) == 1 {
 		retv := ret[0].Interface()
 		if err, ok := retv.(error); ok {
 			return nil, ast.PosError(node, "%s: %w", valueToString(node), err)
 		}
-		return ret[0].Interface(), nil
+		return retv, nil
 	} else {
 		if ret[1].IsNil() {
 			return ret[0].Interface(), nil
