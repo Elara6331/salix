@@ -121,6 +121,13 @@ func (t *Template) execute(w io.Writer, nodes []ast.Node, local map[string]any) 
 			if _, ok := v.(ast.Assignment); ok {
 				continue
 			}
+			// Dereference any pointer variables
+			if rval := reflect.ValueOf(v); rval.Kind() == reflect.Pointer {
+				for rval.Kind() == reflect.Pointer {
+					rval = rval.Elem()
+				}
+				v = rval.Interface()
+			}
 			_, err = io.WriteString(w, t.toString(v))
 			if err != nil {
 				return err
@@ -441,10 +448,6 @@ func (t *Template) getIndex(i ast.Index, local map[string]any) (any, error) {
 	default:
 		return nil, ast.PosError(i, "%s: cannot index type: %T", valueToString(i), val)
 	}
-
-	for out.Kind() == reflect.Pointer {
-		out = out.Elem()
-	}
 	return out.Interface(), nil
 }
 
@@ -467,9 +470,6 @@ func (t *Template) getField(fa ast.FieldAccess, local map[string]any) (any, erro
 	field := rval.FieldByName(fa.Name.Value)
 	if !field.IsValid() {
 		return nil, ast.PosError(fa, "%s: no such field: %s", valueToString(fa), fa.Name.Value)
-	}
-	for field.Kind() == reflect.Pointer {
-		field = field.Elem()
 	}
 	return field.Interface(), nil
 }
@@ -544,11 +544,7 @@ func (t *Template) execFunc(fn reflect.Value, node ast.Node, args []ast.Node, lo
 		}
 	}
 
-	ret := fn.Call(params)
-	for ret[0].Kind() == reflect.Pointer {
-		ret[0] = ret[0].Elem()
-	}
-	if len(ret) == 1 {
+	if ret := fn.Call(params); len(ret) == 1 {
 		retv := ret[0].Interface()
 		if err, ok := retv.(error); ok {
 			return nil, ast.PosError(node, "%s: %w", valueToString(node), err)
