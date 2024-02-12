@@ -93,7 +93,7 @@ func TestFuncCallVariadic(t *testing.T) {
 }
 
 func TestFuncCallError(t *testing.T) {
-	var expectedErr = errors.New("expected error")
+	expectedErr := errors.New("expected error")
 	fn := func() error { return expectedErr }
 
 	// test()
@@ -131,7 +131,7 @@ func TestFuncCallMultiReturn(t *testing.T) {
 }
 
 func TestFuncCallMultiReturnError(t *testing.T) {
-	var expectedErr = errors.New("expected error")
+	expectedErr := errors.New("expected error")
 	fn := func() (string, error) { return "", expectedErr }
 
 	// test()
