@@ -3,6 +3,7 @@ package salix
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"go.elara.ws/salix/ast"
 )
@@ -176,7 +177,7 @@ func TestGetIndexInvalidContainer(t *testing.T) {
 }
 
 func TestGetField(t *testing.T) {
-	testStruct := struct {
+	testStruct := &struct {
 		X int
 		Y string
 		Z struct{ A int }
@@ -214,23 +215,6 @@ func TestGetField(t *testing.T) {
 	}
 }
 
-func TestGetFieldNotFound(t *testing.T) {
-	testStruct := struct{}{}
-	tmpl := testTmpl(t)
-
-	// test.Field
-	ast := ast.FieldAccess{
-		Value:    ast.Ident{Value: "test", Position: testPos(t)},
-		Name:     ast.Ident{Value: "Field", Position: testPos(t)},
-		Position: testPos(t),
-	}
-
-	_, err := tmpl.getField(ast, map[string]any{"test": testStruct})
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
-}
-
 func TestGetFieldNil(t *testing.T) {
 	tmpl := testTmpl(t)
 
@@ -247,9 +231,43 @@ func TestGetFieldNil(t *testing.T) {
 	}
 }
 
+func TestGetFieldNoFields(t *testing.T) {
+	testStruct := struct{}{}
+	tmpl := testTmpl(t)
+
+	// test.Field
+	ast := ast.FieldAccess{
+		Value:    ast.Ident{Value: "test", Position: testPos(t)},
+		Name:     ast.Ident{Value: "Field", Position: testPos(t)},
+		Position: testPos(t),
+	}
+
+	_, err := tmpl.getField(ast, map[string]any{"test": testStruct})
+	if err == nil {
+		t.Error("Expected error, got nil")
+	}
+}
+
+func TestGetFieldNotFound(t *testing.T) {
+	testStruct := struct{ X int }{0}
+	tmpl := testTmpl(t)
+
+	// test.Field
+	ast := ast.FieldAccess{
+		Value:    ast.Ident{Value: "test", Position: testPos(t)},
+		Name:     ast.Ident{Value: "Field", Position: testPos(t)},
+		Position: testPos(t),
+	}
+
+	_, err := tmpl.getField(ast, map[string]any{"test": testStruct})
+	if err == nil {
+		t.Error("Expected error, got nil")
+	}
+}
+
 func TestMethodCall(t *testing.T) {
 	executed := false
-	testStruct := struct{ Method func(bool) bool }{
+	testStruct := &struct{ Method func(bool) bool }{
 		Method: func(b bool) bool {
 			executed = b
 			return executed
@@ -274,6 +292,31 @@ func TestMethodCall(t *testing.T) {
 
 	if !executed || !val.(bool) {
 		t.Error("Expected method to execute, got false")
+	}
+}
+
+func TestMethodCallTime(t *testing.T) {
+	const expected = "2023-04-26T00:00:00Z"
+	testStruct := time.Date(2023, time.April, 26, 0, 0, 0, 0, time.UTC)
+	tmpl := testTmpl(t)
+
+	// t.Format("2006-01-02T15:04:05Z07:00)
+	ast := ast.MethodCall{
+		Value: ast.Ident{Value: "t", Position: testPos(t)},
+		Name:  ast.Ident{Value: "Format", Position: testPos(t)},
+		Params: []ast.Node{
+			ast.String{Value: time.RFC3339, Position: testPos(t)},
+		},
+		Position: testPos(t),
+	}
+
+	val, err := tmpl.execMethodCall(ast, map[string]any{"t": testStruct})
+	if err != nil {
+		t.Fatalf("execMethodCall error: %s", err)
+	}
+
+	if val != expected {
+		t.Errorf("Expected %q, got %q", expected, val)
 	}
 }
 
