@@ -107,6 +107,23 @@ func TestGetIndexNil(t *testing.T) {
 	}
 }
 
+func TestGetIndexNilIndex(t *testing.T) {
+	testMap := map[string]any{}
+	tmpl := testTmpl(t)
+
+	// test[index]
+	ast := ast.Index{
+		Value:    ast.Ident{Value: "test", Position: testPos(t)},
+		Index:    ast.Ident{Value: "index", Position: testPos(t)},
+		Position: testPos(t),
+	}
+
+	_, err := tmpl.getIndex(ast, map[string]any{"test": testMap, "index": nil})
+	if err == nil {
+		t.Error("Expected error, got nil")
+	}
+}
+
 func TestGetField(t *testing.T) {
 	testStruct := struct {
 		X int

@@ -415,7 +415,7 @@ func (t *Template) getIndex(i ast.Index, local map[string]any) (any, error) {
 		return nil, ast.PosError(i, "%s: cannot get index of nil value", valueToString(i))
 	}
 	rindex := reflect.ValueOf(index)
-	if !rval.IsValid() {
+	if !rindex.IsValid() {
 		return nil, ast.PosError(i, "%s: cannot use nil value as an index", valueToString(i))
 	}
 
