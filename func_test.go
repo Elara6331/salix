@@ -29,6 +29,44 @@ func TestFuncCall(t *testing.T) {
 	}
 }
 
+func TestFuncCallInvalidParamCount(t *testing.T) {
+	fn := func() int { return 0 }
+
+	// test("string")
+	ast := ast.FuncCall{
+		Name: ast.Ident{Value: "test", Position: testPos(t)},
+		Params: []ast.Node{
+			ast.String{Value: "string", Position: testPos(t)},
+		},
+		Position: testPos(t),
+	}
+
+	tmpl := testTmpl(t)
+	_, err := tmpl.execFuncCall(ast, map[string]any{"test": fn})
+	if err == nil {
+		t.Error("Expected error, got nil")
+	}
+}
+
+func TestFuncCallInvalidParamType(t *testing.T) {
+	fn := func(i int) int { return i }
+
+	// test("string")
+	ast := ast.FuncCall{
+		Name: ast.Ident{Value: "test", Position: testPos(t)},
+		Params: []ast.Node{
+			ast.String{Value: "string", Position: testPos(t)},
+		},
+		Position: testPos(t),
+	}
+
+	tmpl := testTmpl(t)
+	_, err := tmpl.execFuncCall(ast, map[string]any{"test": fn})
+	if err == nil {
+		t.Error("Expected error, got nil")
+	}
+}
+
 func TestFuncCallVariadic(t *testing.T) {
 	const expected = "Hello, World"
 	concat := func(params ...string) string { return strings.Join(params, ", ") }
@@ -118,6 +156,43 @@ func TestFuncCallNil(t *testing.T) {
 
 	tmpl := testTmpl(t)
 	_, err := tmpl.execFuncCall(ast, map[string]any{"test": nil})
+	if err == nil {
+		t.Error("Expected error, got nil")
+	}
+}
+
+func TestFuncCallNotFound(t *testing.T) {
+	// test()
+	ast := ast.FuncCall{
+		Name:     ast.Ident{Value: "test", Position: testPos(t)},
+		Position: testPos(t),
+	}
+
+	tmpl := testTmpl(t)
+	_, err := tmpl.execFuncCall(ast, map[string]any{})
+	if err == nil {
+		t.Error("Expected error, got nil")
+	}
+}
+
+func TestFuncCallAssignment(t *testing.T) {
+	fn := func(i int) int { return i }
+
+	// test(x = 1)
+	ast := ast.FuncCall{
+		Name: ast.Ident{Value: "test", Position: testPos(t)},
+		Params: []ast.Node{
+			ast.Assignment{
+				Name:     ast.Ident{Value: "x", Position: testPos(t)},
+				Value:    ast.Integer{Value: 1, Position: testPos(t)},
+				Position: testPos(t),
+			},
+		},
+		Position: testPos(t),
+	}
+
+	tmpl := testTmpl(t)
+	_, err := tmpl.execFuncCall(ast, map[string]any{"test": fn})
 	if err == nil {
 		t.Error("Expected error, got nil")
 	}
