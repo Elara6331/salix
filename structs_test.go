@@ -49,6 +49,23 @@ func TestSliceGetIndexOutOfRange(t *testing.T) {
 	}
 }
 
+func TestSliceGetIndexInvalidType(t *testing.T) {
+	testSlice := []any{}
+	tmpl := testTmpl(t)
+
+	// test[0.0]
+	ast := ast.Index{
+		Value:    ast.Ident{Value: "test", Position: testPos(t)},
+		Index:    ast.String{Value: "key", Position: testPos(t)},
+		Position: testPos(t),
+	}
+
+	_, err := tmpl.getIndex(ast, map[string]any{"test": testSlice})
+	if err == nil {
+		t.Errorf("Expected error, got nil")
+	}
+}
+
 func TestMapGetIndex(t *testing.T) {
 	testMap := map[any]any{1: "2", 3.0: 4, "5": 6.0}
 
@@ -76,6 +93,23 @@ func TestMapGetIndex(t *testing.T) {
 
 func TestMapGetIndexNotFound(t *testing.T) {
 	testMap := map[string]any{}
+	tmpl := testTmpl(t)
+
+	// test["key"]
+	ast := ast.Index{
+		Value:    ast.Ident{Value: "test", Position: testPos(t)},
+		Index:    ast.String{Value: "key", Position: testPos(t)},
+		Position: testPos(t),
+	}
+
+	_, err := tmpl.getIndex(ast, map[string]any{"test": testMap})
+	if err == nil {
+		t.Error("Expected error, got nil")
+	}
+}
+
+func TestMapGetIndexInvalidType(t *testing.T) {
+	testMap := map[int]any{}
 	tmpl := testTmpl(t)
 
 	// test["key"]
@@ -119,6 +153,23 @@ func TestGetIndexNilIndex(t *testing.T) {
 	}
 
 	_, err := tmpl.getIndex(ast, map[string]any{"test": testMap, "index": nil})
+	if err == nil {
+		t.Error("Expected error, got nil")
+	}
+}
+
+func TestGetIndexInvalidContainer(t *testing.T) {
+	testStruct := struct{}{}
+	tmpl := testTmpl(t)
+
+	// test["key"]
+	ast := ast.Index{
+		Value:    ast.Ident{Value: "test", Position: testPos(t)},
+		Index:    ast.String{Value: "key", Position: testPos(t)},
+		Position: testPos(t),
+	}
+
+	_, err := tmpl.getIndex(ast, map[string]any{"test": testStruct})
 	if err == nil {
 		t.Error("Expected error, got nil")
 	}
