@@ -2,6 +2,8 @@ package salix
 
 import (
 	"errors"
+	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -195,5 +197,22 @@ func TestFuncCallAssignment(t *testing.T) {
 	_, err := tmpl.execFuncCall(ast, map[string]any{"test": fn})
 	if err == nil {
 		t.Error("Expected error, got nil")
+	}
+}
+
+func TestValidateFunc(t *testing.T) {
+	testCases := []reflect.Type{
+		reflect.TypeFor[func()](),               // Template functions must return at least one value
+		reflect.TypeFor[func() (x, y int)](),    // Second return value must be an error
+		reflect.TypeFor[func() (x, y, z int)](), // Template functions cannot have more than two return values
+	}
+
+	for index, testCase := range testCases {
+		t.Run(fmt.Sprint(index), func(t *testing.T) {
+			err := validateFunc(testCase, ast.Bool{Value: true, Position: testPos(t)})
+			if err == nil {
+				t.Error("Expected error, got nil")
+			}
+		})
 	}
 }
