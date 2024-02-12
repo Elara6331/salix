@@ -1,9 +1,7 @@
 package salix
 
 import (
-	"strings"
 	"testing"
-	"time"
 )
 
 func TestAdd(t *testing.T) {
@@ -139,59 +137,9 @@ func TestNot(t *testing.T) {
 	}
 }
 
-func TestIndex(t *testing.T) {
-	res := execStr(t, `#(x[0]) #(y["hello"])`, map[string]any{
-		"x": []int{0, 1, 2},
-		"y": map[string]string{"hello": "world"},
-	})
-	if res != "0 world" {
-		t.Errorf("Expected %q, got %q", "equal non-equal", res)
-	}
-}
-
-func TestFuncCall(t *testing.T) {
-	res := execStr(t, `#(toUpper("hello"))`, nil)
-	if res != "HELLO" {
-		t.Errorf("Expected %q, got %q", "HELLO", res)
-	}
-}
-
 func TestAssignment(t *testing.T) {
 	res := execStr(t, `#(x = 4)#(x)`, nil)
 	if res != "4" {
 		t.Errorf("Expected %q, got %q", "4", res)
 	}
-}
-
-func TestMethodCall(t *testing.T) {
-	res := execStr(t, `#(t.String())`, map[string]any{
-		"t": time.Date(2023, time.April, 26, 0, 0, 0, 0, time.UTC),
-	})
-	if res != "2023-04-26 00:00:00 +0000 UTC" {
-		t.Errorf("Expected %q, got %q", "2023-04-26 00:00:00 +0000 UTC", res)
-	}
-}
-
-func TestVariadic(t *testing.T) {
-	res := execStr(t, `#(sprintf("%s %d", x, y))`, map[string]any{
-		"x": "test",
-		"y": 4,
-	})
-	if res != "test 4" {
-		t.Errorf("Expected %q, got %q", "test 4", res)
-	}
-}
-
-func execStr(t *testing.T, tmplStr string, vars map[string]any) string {
-	t.Helper()
-	tmpl, err := New().ParseString("test", tmplStr)
-	if err != nil {
-		t.Fatal(err)
-	}
-	sb := &strings.Builder{}
-	err = tmpl.WithVarMap(vars).Execute(sb)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return sb.String()
 }
