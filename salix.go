@@ -166,7 +166,7 @@ func (t *Template) getBlock(nodes []ast.Node, offset, startLine int, name string
 			// If we encounter another tag with the same name,
 			// increment tagAmount so that we know that the next
 			// end tag isn't the end of this tag.
-			if node.Name.Value == name {
+			if node.Name.Value == name && node.HasBody {
 				tagAmount++
 			}
 			out = append(out, node)
