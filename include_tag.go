@@ -29,8 +29,17 @@ func (it includeTag) Run(tc *TagContext, block, args []ast.Node) error {
 		return tc.PosError(args[0], "invalid first argument type: %T (expected string)", val)
 	}
 
+	ignoreMissing := false
+	if name[0] == '?' {
+		name = name[1:]
+		ignoreMissing = true
+	}
+
 	tmpl, ok := tc.t.ns.GetTemplate(name)
 	if !ok {
+		if ignoreMissing {
+			return nil
+		}
 		return tc.PosError(args[0], "no such template: %q", name)
 	}
 

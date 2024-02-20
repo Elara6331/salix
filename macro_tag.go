@@ -20,6 +20,12 @@ func (mt macroTag) Run(tc *TagContext, block, args []ast.Node) error {
 		return tc.PosError(args[0], "invalid first argument type: %T (expected string)", nameVal)
 	}
 
+	ignoreMissing := false
+	if name[0] == '?' {
+		name = name[1:]
+		ignoreMissing = true
+	}
+
 	if len(block) == 0 {
 		local := map[string]any{}
 
@@ -40,6 +46,9 @@ func (mt macroTag) Run(tc *TagContext, block, args []ast.Node) error {
 
 		macro, ok := tc.t.macros[name]
 		if !ok {
+			if ignoreMissing {
+				return nil
+			}
 			return tc.PosError(tc.Tag, "no such macro: %q", name)
 		}
 		return tc.Execute(macro, local)
