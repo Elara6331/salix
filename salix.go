@@ -484,9 +484,6 @@ func (t *Template) execMethodCall(mc ast.MethodCall, local map[string]any) (any,
 	if !rval.IsValid() {
 		return nil, ast.PosError(mc, "%s: cannot call method on nil value", valueToString(mc))
 	}
-	for rval.Kind() == reflect.Pointer {
-		rval = rval.Elem()
-	}
 	// First, check for a method with the given name
 	mtd := rval.MethodByName(mc.Name.Value)
 	if mtd.IsValid() {
