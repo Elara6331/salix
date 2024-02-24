@@ -429,10 +429,16 @@ func (t *Template) getIndex(i ast.Index, local map[string]any) (any, error) {
 		}
 
 		intIndex := rindex.Interface().(int)
-		if intIndex < rval.Len() {
+		if intIndex < 0 {
+			intIndex = rval.Len() + intIndex
+			if intIndex < 0 {
+				return nil, ast.PosError(i, "%s: index out of range: %d (length %d)", valueToString(i), intIndex, rval.Len())
+			}
+			out = rval.Index(intIndex)
+		} else if intIndex < rval.Len() {
 			out = rval.Index(intIndex)
 		} else {
-			return nil, ast.PosError(i, "%s: index out of range: %d", valueToString(i), intIndex)
+			return nil, ast.PosError(i, "%s: index out of range: %d (length %d)", valueToString(i), intIndex, rval.Len())
 		}
 	case reflect.Map:
 		if rindex.CanConvert(rval.Type().Key()) {
