@@ -432,7 +432,7 @@ func (t *Template) getIndex(i ast.Index, local map[string]any) (any, error) {
 		if intIndex < 0 {
 			intIndex = rval.Len() + intIndex
 			if intIndex < 0 {
-				return nil, ast.PosError(i, "%s: index out of range: %d (length %d)", valueToString(i), intIndex, rval.Len())
+				return nil, ast.PosError(i, "%s: index out of range: %d (length %d)", valueToString(i), rindex.Interface(), rval.Len())
 			}
 			out = rval.Index(intIndex)
 		} else if intIndex < rval.Len() {

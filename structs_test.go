@@ -33,6 +33,28 @@ func TestSliceGetIndex(t *testing.T) {
 	}
 }
 
+func TestSliceGetNegativeIndex(t *testing.T) {
+	testSlice := []any{1, "2", 3.0}
+
+	tmpl := testTmpl(t)
+
+	// test[-2]
+	ast := ast.Index{
+		Value:    ast.Ident{Value: "test", Position: testPos(t)},
+		Index:    ast.Integer{Value: -2, Position: testPos(t)},
+		Position: testPos(t),
+	}
+
+	val, err := tmpl.getIndex(ast, map[string]any{"test": testSlice})
+	if err != nil {
+		t.Fatalf("getIndex error: %s", err)
+	}
+
+	if val != testSlice[len(testSlice)-2] {
+		t.Errorf("Expected %q, got %q", "2", val)
+	}
+}
+
 func TestSliceGetIndexOutOfRange(t *testing.T) {
 	testSlice := []any{}
 	tmpl := testTmpl(t)
@@ -41,6 +63,23 @@ func TestSliceGetIndexOutOfRange(t *testing.T) {
 	ast := ast.Index{
 		Value:    ast.Ident{Value: "test", Position: testPos(t)},
 		Index:    ast.Float{Value: 0, Position: testPos(t)},
+		Position: testPos(t),
+	}
+
+	_, err := tmpl.getIndex(ast, map[string]any{"test": testSlice})
+	if err == nil {
+		t.Errorf("Expected error, got nil")
+	}
+}
+
+func TestSliceGetNegativeIndexOutOfRange(t *testing.T) {
+	testSlice := []any{0, 1, 2, 3}
+	tmpl := testTmpl(t)
+
+	// test[-5]
+	ast := ast.Index{
+		Value:    ast.Ident{Value: "test", Position: testPos(t)},
+		Index:    ast.Integer{Value: -5, Position: testPos(t)},
 		Position: testPos(t),
 	}
 
