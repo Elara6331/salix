@@ -1,6 +1,7 @@
 package salix
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 var globalVars = map[string]any{
 	"len":        tmplLen,
+	"json":       tmplJSON,
 	"toUpper":    strings.ToUpper,
 	"toLower":    strings.ToLower,
 	"hasPrefix":  strings.HasPrefix,
@@ -19,6 +21,8 @@ var globalVars = map[string]any{
 	"count":      strings.Count,
 	"split":      strings.Split,
 	"join":       strings.Join,
+	"replace":    strings.Replace,
+	"replaceAll": strings.ReplaceAll,
 	"sprintf":    fmt.Sprintf,
 }
 
@@ -30,4 +34,9 @@ func tmplLen(v any) (int, error) {
 	default:
 		return 0, fmt.Errorf("cannot get length of %T", v)
 	}
+}
+
+func tmplJSON(v any) (string, error) {
+	data, err := json.Marshal(v)
+	return string(data), err
 }

@@ -170,6 +170,7 @@ Functions used in a template can accept any number of arguments but are limited 
 Salix includes several useful global functions in all templates:
 
 - `len(v any) int`: Returns the length of the value passed in. If the length can't be found for the value passed in, it returns an error.
+- `json(v any) string`: Returns a JSON string for the value passed in.
 - `toUpper(s string) string`: Returns `s`, but with all characters mapped to their uppercase equivalents.
 - `toLower(s string) string`: Returns `s`, but with all characters mapped to their lowercase equivalents.
 - `hasPrefix(s, prefix string) bool`: Returns true if `s` starts with `prefix`.
@@ -181,6 +182,8 @@ Salix includes several useful global functions in all templates:
 - `count(s, substr string) int`: Returns the amount of times that `substr` appears in `s`.
 - `split(s, sep string) []string`: Returns a slice containing all substrings separated by `sep`.
 - `join(ss []string, sep string) string`: Returns a string with all substrings in `ss` joined by `sep`.
+- `replace(s, old, new string, n int)`: Returns a string with `n` occurrences of `old` in `s` replaced with `new`.
+- `replaceAll(s, old, new string)`: Returns a string with all occurrences of `old` in `s` replaced with `new`.
 
 ### Adding Custom Functions
 
