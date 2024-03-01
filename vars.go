@@ -36,7 +36,7 @@ func tmplLen(v any) (int, error) {
 	}
 }
 
-func tmplJSON(v any) (string, error) {
+func tmplJSON(v any) (HTML, error) {
 	data, err := json.Marshal(v)
-	return string(data), err
+	return HTML(data), err
 }
