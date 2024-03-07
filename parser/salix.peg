@@ -116,11 +116,47 @@ ParamList = '(' params:(Expr ( ',' _ Expr )* )? ')' {
     return out, nil
 }
 
-Value = not:"!"? node:(MethodCall / FieldAccess / Index / String / RawString / Float / Integer / Bool / FuncCall / VariableOr / Ident / ParenExpr) {
+Value = not:"!"? node:(MethodCall / FieldAccess / Index / String / RawString / Float / Integer / Bool / FuncCall / VariableOr / Ident / ParenExpr / Array / Map) {
     return ast.Value{
         Node: node.(ast.Node),
         Not:  not != nil,
     }, nil
+}
+
+Map = '{' _ fpair:(Assignable _ ':' _ Assignable)? _ pairs:(',' _ Assignable _ ':' _ Assignable _)* _ ','? _ '}' {
+    out := ast.Map{
+        Map: map[ast.Node]ast.Node{},
+        Position: getPos(c),
+    }
+
+    fpairSlice := toAnySlice(fpair)
+    if fpairSlice == nil {
+        return out, nil
+    } else {
+        out.Map[fpairSlice[0].(ast.Node)] = fpairSlice[4].(ast.Node)
+        for _, pair := range toAnySlice(pairs) {
+            pairSlice := toAnySlice(pair)
+            out.Map[pairSlice[2].(ast.Node)] = pairSlice[6].(ast.Node)
+        }
+    }
+
+    return out, nil
+}
+
+Array = '[' _ fval:Assignable? _ vals:(',' _ Assignable _)* ','? _ ']' {
+    out := ast.Array{Position: getPos(c)}
+
+    if fval == nil {
+        return out, nil
+    } else {
+        out.Array = append(out.Array, fval.(ast.Node))
+        for _, val := range toAnySlice(vals) {
+            valSlice := toAnySlice(val)
+            out.Array = append(out.Array, valSlice[2].(ast.Node))
+        }
+    }
+
+    return out, nil
 }
 
 VariableOr = variable:Ident _ '|' _ or:Assignable {

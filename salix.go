@@ -222,6 +222,10 @@ func (t *Template) getValue(node ast.Node, local map[string]any) (any, error) {
 		return t.evalTernary(node, local)
 	case ast.VariableOr:
 		return t.evalVariableOr(node, local)
+	case ast.Map:
+		return t.convertMap(node, local)
+	case ast.Array:
+		return t.convertArray(node, local)
 	case ast.Assignment:
 		return node, t.handleAssignment(node, local)
 	default:
@@ -290,6 +294,23 @@ func valueToString(node ast.Node) string {
 		} else {
 			return "#" + node.Name.Value + "()"
 		}
+	case ast.Map:
+		k, v := getOneMapPair(node)
+		if len(node.Map) > 1 {
+			return "{" + valueToString(k) + ": " + valueToString(v) + ", ...}"
+		} else if len(node.Map) == 1 {
+			return "{" + valueToString(k) + ": " + valueToString(v) + "}"
+		} else {
+			return "{}"
+		}
+	case ast.Array:
+		if len(node.Array) > 1 {
+			return "[" + valueToString(node.Array[0]) + ", ...]"
+		} else if len(node.Array) == 1 {
+			return "[" + valueToString(node.Array[0]) + "]"
+		} else {
+			return "[]"
+		}
 	case ast.EndTag:
 		return "#!" + node.Name.Value
 	case ast.ExprTag:
@@ -297,6 +318,13 @@ func valueToString(node ast.Node) string {
 	default:
 		return "..."
 	}
+}
+
+func getOneMapPair(m ast.Map) (k, v ast.Node) {
+	for key, val := range m.Map {
+		return key, val
+	}
+	return nil, nil
 }
 
 // unwrapASTValue unwraps an ast.Value node into its underlying value
@@ -315,6 +343,40 @@ func (t *Template) unwrapASTValue(node ast.Value, local map[string]any) (any, er
 	}
 
 	return v, err
+}
+
+// convertMap converts an ast.Map value into a map[any]any by recursively calling
+// getValue on each of its keys and values.
+func (t *Template) convertMap(node ast.Map, local map[string]any) (any, error) {
+	out := make(map[any]any, len(node.Map))
+	for keyNode, valNode := range node.Map {
+		key, err := t.getValue(keyNode, local)
+		if err != nil {
+			return nil, err
+		}
+
+		val, err := t.getValue(valNode, local)
+		if err != nil {
+			return nil, err
+		}
+
+		out[key] = val
+	}
+	return out, nil
+}
+
+// convertArray converts an ast.Array into an []any by recursively calling getValue
+// on each of its elements.
+func (t *Template) convertArray(node ast.Array, local map[string]any) (any, error) {
+	out := make([]any, len(node.Array))
+	for i, valNode := range node.Array {
+		val, err := t.getValue(valNode, local)
+		if err != nil {
+			return nil, err
+		}
+		out[i] = val
+	}
+	return out, nil
 }
 
 // getVar tries to get a variable from the local map. If it's not found,

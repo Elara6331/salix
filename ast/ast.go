@@ -64,6 +64,24 @@ type Value struct {
 	Not bool
 }
 
+type Map struct {
+	Map      map[Node]Node
+	Position Position
+}
+
+func (m Map) Pos() Position {
+	return m.Position
+}
+
+type Array struct {
+	Array    []Node
+	Position Position
+}
+
+func (a Array) Pos() Position {
+	return a.Position
+}
+
 type Expr struct {
 	First    Node
 	Operator Operator
