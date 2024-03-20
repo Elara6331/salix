@@ -26,6 +26,7 @@ type Template struct {
 	// WriteOnSuccess indicates whether the output should only be written if generation fully succeeds.
 	// This option buffers the output of the template, so it will use more memory. (default: false)
 	WriteOnSuccess bool
+	NilToZero bool
 
 	tags   map[string]Tag
 	vars   map[string]any
@@ -63,6 +64,12 @@ func (t Template) WithEscapeHTML(b bool) Template {
 // WithWriteOnSuccess enables or disables only writing if generation fully succeeds.
 func (t Template) WithWriteOnSuccess(b bool) Template {
 	t.WriteOnSuccess = true
+	return t
+}
+
+// WithNilToZero enables or disables conversion of nil values to zero values.
+func (t Template) WithNilToZero(b bool) Template {
+	t.NilToZero = true
 	return t
 }
 
@@ -145,6 +152,10 @@ func (t *Template) getEscapeHTML() bool {
 	} else {
 		return false
 	}
+}
+
+func (t *Template) getNilToZero() bool {
+	return t.NilToZero || t.ns.NilToZero
 }
 
 func (t *Template) toString(v any) string {
@@ -334,12 +345,18 @@ func (t *Template) unwrapASTValue(node ast.Value, local map[string]any) (any, er
 		return nil, err
 	}
 
+	rval := reflect.ValueOf(v)
+
 	if node.Not {
-		rval := reflect.ValueOf(v)
 		if rval.Kind() != reflect.Bool {
 			return nil, ast.PosError(node, "%s: the ! operator can only be used on boolean values", valueToString(node))
 		}
 		return !rval.Bool(), nil
+	}
+
+	if rval.Kind() == reflect.Pointer && rval.IsNil() && t.getNilToZero() {
+		rtyp := rval.Type().Elem()
+		return reflect.New(rtyp).Interface(), nil
 	}
 
 	return v, err

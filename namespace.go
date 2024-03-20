@@ -20,6 +20,9 @@ type Namespace struct {
 	// WriteOnSuccess indicates whether the output should only be written if generation fully succeeds.
 	// This option buffers the output of the template, so it will use more memory. (default: false)
 	WriteOnSuccess bool
+	// NilToZero indictes whether nil pointer values should be converted to zero values of their underlying
+	// types.
+	NilToZero bool
 	escapeHTML     *bool
 }
 
@@ -83,6 +86,14 @@ func (n *Namespace) WithWhitespaceMutations(b bool) *Namespace {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	n.WhitespaceMutations = true
+	return n
+}
+
+// WithNilToZero enables or disables conversion of nil values to zero values for the namespace
+func (n *Namespace) WithNilToZero(b bool) *Namespace {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+	n.NilToZero = true
 	return n
 }
 
