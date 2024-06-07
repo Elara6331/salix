@@ -26,7 +26,7 @@ type Template struct {
 	// WriteOnSuccess indicates whether the output should only be written if generation fully succeeds.
 	// This option buffers the output of the template, so it will use more memory. (default: false)
 	WriteOnSuccess bool
-	NilToZero bool
+	NilToZero      bool
 
 	tags   map[string]Tag
 	vars   map[string]any
@@ -239,6 +239,8 @@ func (t *Template) getValue(node ast.Node, local map[string]any) (any, error) {
 		return t.convertArray(node, local)
 	case ast.Assignment:
 		return node, t.handleAssignment(node, local)
+	case ast.Nil:
+		return nil, nil
 	default:
 		return nil, nil
 	}

@@ -54,6 +54,17 @@ func (t *Template) performOp(a, b reflect.Value, op ast.Operator) (any, error) {
 		default:
 			return nil, ast.PosError(op, "the in operator can only be used on strings, arrays, and slices (got %s and %s)", a.Type(), b.Type())
 		}
+	} else if !b.IsValid() {
+		if op.Value != "==" {
+			return nil, ast.PosError(op, "invalid operator for nil value (expected ==, got %s)", op.Value)
+		}
+
+		switch a.Kind() {
+		case reflect.Chan, reflect.Slice, reflect.Map, reflect.Func, reflect.Interface, reflect.Pointer:
+			return a.IsNil(), nil
+		default:
+			return nil, ast.PosError(op, "values of type %s cannot be compared against nil", a.Type())
+		}
 	} else if b.CanConvert(a.Type()) {
 		b = b.Convert(a.Type())
 	} else {

@@ -20,6 +20,14 @@ func (p Position) String() string {
 	return fmt.Sprintf("%s: line %d, col %d", p.Name, p.Line, p.Col)
 }
 
+type Nil struct {
+	Position Position
+}
+
+func (n Nil) Pos() Position {
+	return n.Position
+}
+
 type Tag struct {
 	Name     Ident
 	Params   []Node

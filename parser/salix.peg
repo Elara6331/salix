@@ -129,7 +129,7 @@ ParamList = '(' params:(Expr ( ',' _ Expr )* )? ')' {
     return out, nil
 }
 
-Value = not:"!"? node:(MethodCall / FieldAccess / Index / String / RawString / Float / Integer / Bool / FuncCall / VariableOr / Ident / ParenExpr / Array / Map) {
+Value = not:"!"? node:(Nil / MethodCall / FieldAccess / Index / String / RawString / Float / Integer / Bool / FuncCall / VariableOr / Ident / ParenExpr / Array / Map) {
     return ast.Value{
         Node: node.(ast.Node),
         Not:  not != nil,
@@ -286,6 +286,10 @@ ArithmeticOp = ('+' / '-' / '/' / '*' / '%') {
         Value:    string(c.text),
         Position: getPos(c),
     }, nil
+}
+
+Nil = "nil" {
+    return ast.Nil{Position: getPos(c)}, nil
 }
 
 Text = . [^#]* { return ast.Text{Data: c.text, Position: getPos(c)}, nil }
