@@ -54,6 +54,10 @@ func (t *Template) performOp(a, b reflect.Value, op ast.Operator) (any, error) {
 		default:
 			return nil, ast.PosError(op, "the in operator can only be used on strings, arrays, and slices (got %s and %s)", a.Type(), b.Type())
 		}
+	} else if !a.IsValid() && !b.IsValid() {
+		return true, nil
+	} else if !a.IsValid() {
+		return nil, ast.PosError(op, "nil must be on the right side of an expression")
 	} else if !b.IsValid() {
 		if op.Value != "==" && op.Value != "!=" {
 			return nil, ast.PosError(op, "invalid operator for nil value (expected == or !=, got %s)", op.Value)
