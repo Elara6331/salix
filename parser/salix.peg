@@ -83,8 +83,21 @@ ExprTag = '#' ignoreErr:'?'? '(' item:Expr ')' {
     }, nil
 }
 
-Expr = Ternary / Assignment / LogicalExpr
-Assignable = Ternary / LogicalExpr
+Expr = Assignment / TernaryExpr
+Assignable = TernaryExpr
+
+TernaryExpr = _ cond:LogicalExpr vals:(_ '?' _ Value _ ':' _ Value)? {
+    if vals == nil {
+        return cond, nil
+    } else {
+        s := toAnySlice(vals)
+        return ast.Ternary{
+            Condition: cond.(ast.Node),
+            IfTrue:    s[3].(ast.Node),
+            Else:      s[7].(ast.Node),
+        }, nil
+    }
+}
 
 LogicalExpr = _ first:ComparisonExpr rest:(_ LogicalOp _ ComparisonExpr)* _ {
     return toExpr(c, first, rest), nil
@@ -171,14 +184,6 @@ Assignment = name:Ident _ '=' _ value:Assignable {
         Name:     name.(ast.Ident),
         Value:    value.(ast.Node),
         Position: getPos(c),
-    }, nil
-}
-
-Ternary = cond:Assignable _ '?' _ ifTrue:Value _ ':' _ elseVal:Value {
-    return ast.Ternary{
-        Condition: cond.(ast.Node),
-        IfTrue:    ifTrue.(ast.Node),
-        Else:      elseVal.(ast.Node),
     }, nil
 }
 

@@ -1,16 +1,19 @@
 <html>
-    <head>
-        <title>#(page.Title)</title>
-    </head>
-    <body>
-        #for(i, user in users):
-        <div>
-            <h2>#(toLower(user.Name))</h2>
-            <p>User ID: #(i)</p>
-            #if(user.LoggedIn): <p>This user is logged in</p> #!if
-            #if(user.IsAdmin): <p>This user is an admin!</p> #!if
-            <p>Registered: #(user.RegisteredTime.Format("01-02-2006"))</p>
-        </div>
-        #!for
-    </body>
+
+<head>
+    <title>#(page.Title)</title>
+</head>
+
+<body>
+    #for(i, user in users):
+    <div>
+        <h2>#(toLower(user.Name))</h2>
+        <p>User ID: #(i)</p>
+        #if(user.LoggedIn): <p>This user is logged in</p> #!if
+        #if(user.IsAdmin): <p>This user is an admin!</p> #!if
+        <p>Registered: #(user.RegisteredTime.Format("01-02-2006"))</p>
+    </div>
+    #!for
+</body>
+
 </html>
