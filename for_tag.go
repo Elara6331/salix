@@ -55,6 +55,15 @@ func (ft forTag) Run(tc *TagContext, block, args []ast.Node) error {
 	in = reflect.ValueOf(val)
 
 	switch in.Kind() {
+	case reflect.Int:
+		local := map[string]any{}
+		for i := range in.Int() {
+			local[vars[0]] = i
+			err = tc.Execute(block, local)
+			if err != nil {
+				return err
+			}
+		}
 	case reflect.Slice, reflect.Array:
 		local := map[string]any{}
 		for i := 0; i < in.Len(); i++ {
@@ -94,6 +103,38 @@ func (ft forTag) Run(tc *TagContext, block, args []ast.Node) error {
 			}
 
 			i++
+		}
+	case reflect.Func:
+		local := map[string]any{}
+		i := 0
+		if len(vars) == 1 {
+			for val := range in.Seq() {
+				local[vars[0]] = val.Interface()
+				err = tc.Execute(block, local)
+				if err != nil {
+					return err
+				}
+			}
+		} else if len(vars) == 2 {
+			for val1, val2 := range in.Seq2() {
+				local[vars[0]] = val1.Interface()
+				local[vars[1]] = val2.Interface()
+				err = tc.Execute(block, local)
+				if err != nil {
+					return err
+				}
+			}
+		} else {
+			for val1, val2 := range in.Seq2() {
+				local[vars[0]] = i
+				local[vars[1]] = val1.Interface()
+				local[vars[2]] = val2.Interface()
+				err = tc.Execute(block, local)
+				if err != nil {
+					return err
+				}
+				i++
+			}
 		}
 	}
 

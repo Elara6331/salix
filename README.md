@@ -99,7 +99,7 @@ In this example:
 
 ### `for` tag
 
-Salix's `for` tag is used for iterating over slices, arrays, and maps. It can assign one or two variables depending on your needs. When using a single variable, it sets that variable to the current element in the case of slices or arrays, or the current value for maps. With two variables, it assigns the first to the index (in the case of slices or arrays) or the key (for maps), and the second to the element or value, respectively. Here's an example of the for tag in action:
+Salix's `for` tag is used for iterating over iterable variables, such as slices, maps, iterator functions, etc. It can assign one or two variables depending on your needs. When using a single variable, it sets that variable to the current element in the case of slices or arrays, or the current value for maps. With two variables, it assigns the first to the index (in the case of slices or arrays) or the key (for maps), and the second to the element or value, respectively. Here's an example of the for tag in action:
 
 ```
 #for(id, name in users):
