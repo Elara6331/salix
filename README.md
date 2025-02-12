@@ -129,6 +129,8 @@ The include tag allows you to import content from other templates in the namespa
 #include("header.html")
 ```
 
+If the file name starts with a question mark, nonexistent files will be ignored.
+
 #### Using the `include` tag with extra arguments
 
 The `include` tag can accept extra local variables as arguments. Here's an example with a `title` variable:
@@ -152,6 +154,8 @@ The macro tag is a powerful feature that allows you to define reusable template 
 ```
 
 When a macro tag has a block, it sets the macro's content. When it doesn't, it inserts the contents of the macro. In the above example, a macro is defined and then inserted.
+
+If the macro name starts with a question mark, nonexistent macros will be ignored.
 
 #### Using the `macro` tag with extra arguments
 
