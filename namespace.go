@@ -22,8 +22,8 @@ type Namespace struct {
 	WriteOnSuccess bool
 	// NilToZero indictes whether nil pointer values should be converted to zero values of their underlying
 	// types.
-	NilToZero bool
-	escapeHTML     *bool
+	NilToZero  bool
+	escapeHTML *bool
 }
 
 // New returns a new template namespace
